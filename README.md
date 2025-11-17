@@ -39,7 +39,8 @@ pigeon-racing-test-project/
 │   │   ├── TEST_PLAN_OVERVIEW.md         # 測試計劃總覽
 │   │   ├── TEST_CASES.md                 # 詳細測試用例（35+）
 │   │   ├── HELPER_FUNCTIONS_DESIGN.md    # 輔助函數設計（25+）
-│   │   └── KNOWN_ISSUES_SOLUTIONS.md     # 已知問題與解決方案
+│   │   ├── KNOWN_ISSUES_SOLUTIONS.md     # 已知問題與解決方案
+│   │   └── PLAYWRIGHT_MCP_WORKFLOW.md    # Playwright MCP 工作流程
 │   ├── api-reference/          # 🔌 API 接口參考
 │   │   └── API_ENDPOINTS.md              # API 接口文檔（6個端點）
 │   ├── GIT_SETUP.md                      # Git 倉庫配置指南
@@ -163,6 +164,7 @@ npm run test:debug
 - [📝 詳細測試用例](docs/test-plan/TEST_CASES.md) - 35+ 條詳細測試用例（P0/P1/P2優先級）
 - [🔧 輔助函數設計](docs/test-plan/HELPER_FUNCTIONS_DESIGN.md) - 25+ 個輔助函數完整實現
 - [⚠️ 已知問題解決方案](docs/test-plan/KNOWN_ISSUES_SOLUTIONS.md) - 4個已驗證的問題解決方案
+- [🚀 Playwright MCP 工作流程](docs/test-plan/PLAYWRIGHT_MCP_WORKFLOW.md) - 交互式測試調適完整指南
 - [🔌 API 接口參考](docs/api-reference/API_ENDPOINTS.md) - 6個核心 API 端點文檔
 
 **重點特色**：
@@ -170,6 +172,7 @@ npm run test:debug
 - ✅ 三重驗證機制（DOM + Canvas + Network）
 - ✅ 完整的 TypeScript 代碼示例
 - ✅ 包含問題#1-#4的驗證解決方案
+- ✅ Playwright MCP 交互式測試流程
 
 ### 📋 核心文檔
 
