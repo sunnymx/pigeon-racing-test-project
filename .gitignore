@@ -64,6 +64,7 @@ $RECYCLE.BIN/
 playwright/.auth/
 test-results/
 html-report/
+.playwright-mcp/
 
 # Coverage
 coverage/
