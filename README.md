@@ -42,6 +42,7 @@ pigeon-racing-test-project/
 │   │   └── KNOWN_ISSUES_SOLUTIONS.md     # 已知問題與解決方案
 │   ├── api-reference/          # 🔌 API 接口參考
 │   │   └── API_ENDPOINTS.md              # API 接口文檔（6個端點）
+│   ├── GIT_SETUP.md                      # Git 倉庫配置指南
 │   ├── PIGEON_RACING_TEST_PROJECT.md     # 專案詳細規格
 │   ├── DEPLOYMENT_PLAN.md                # 部署計劃書
 │   ├── MVP_PLAYWRIGHT_MCP_PLAN.md        # MVP 測試計劃
@@ -86,7 +87,24 @@ pigeon-racing-test-project/
 
 - Node.js v18 或更高版本
 - Claude Code CLI
+- Git 和 GitHub 帳號
 - 穩定的網路連接
+
+### Git 配置
+
+本專案同時維護兩個 GitHub 遠程倉庫，詳細配置請參閱 **[Git 倉庫配置指南](docs/GIT_SETUP.md)**
+
+**快速配置**：
+```bash
+# 查看已配置的遠程倉庫
+git remote -v
+
+# 推送到主倉庫 (sunnymx)
+git push origin main
+
+# 推送到團隊倉庫 (MinXinCorp)
+git push minxin main
+```
 
 ### 安裝步驟
 
@@ -159,6 +177,7 @@ npm run test:debug
 - [部署計劃書](docs/DEPLOYMENT_PLAN.md) - CI/CD 部署方案和成本分析
 - [MVP 測試計劃](docs/MVP_PLAYWRIGHT_MCP_PLAN.md) - MVP 階段測試執行計劃
 - [互動測試報告](docs/TEST_REPORT.md) - v0.1.0 測試結果和問題記錄
+- [Git 倉庫配置指南](docs/GIT_SETUP.md) - 雙遠程倉庫配置與常用命令
 
 ### 🧪 MVP 測試資料
 
