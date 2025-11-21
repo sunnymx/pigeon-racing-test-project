@@ -57,48 +57,133 @@ POST https://online02.skyracing.com.cn/ugetPigeonAllJsonInfo
 
 ### 解决方案
 
-#### 方法1: 3D→2D→3D→2D 切换序列（推荐）
+#### 方法1: 重新在名次清单选取轨迹后，查看轨迹，反复几次确认轨迹是否生成（推荐）
 
-**原理**: 通过先切换到3D模式触发数据加载，再切换回2D确保数据就绪
+**原理**:
+- API 加载时未等候响应即渲染地图，导致首次查看轨迹时数据可能未完全加载
+- 需要通过重新执行"选择鸽子 → 查看轨迹"流程来触发数据重新加载
+- **关键**：2D 模式分为 **2D 静态模式**和 **2D 动态模式**，需要明确区分
+
+**2D 模式说明**:
+```
+2D 静态模式：显示完整轨迹线和所有轨迹点，适合查看全程路径
+2D 动态模式：播放动画，轨迹点随时间推进移动，适合观看飞行过程
+```
 
 **实现代码**:
 ```typescript
-async function switchTo2DMode(page: Page, retries: number = 2): Promise<boolean> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      // 步骤1: 确保先在3D模式
-      const button2D = page.getByRole('button', { name: '2d 2D模式' });
-      const is2DMode = await button2D.isVisible().catch(() => false);
+/**
+ * 重新加载 2D 轨迹数据
+ * 通过重新选择鸽子并查看轨迹来触发数据刷新
+ */
+async function reload2DTrajectory(
+  page: Page,
+  pigeonIndex: number = 0,
+  maxRetries: number = 3
+): Promise<boolean> {
 
-      if (!is2DMode) {
-        // 当前已在3D，先切换一次确保初始化
-        const button3D = page.getByRole('button', { name: 'view_in_ar 3D模式' });
-        if (await button3D.isVisible().catch(() => false)) {
-          await button3D.click();
-          await page.waitForTimeout(1000);
-        }
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      console.log(`🔄 尝试加载 2D 轨迹 (第 ${attempt + 1}/${maxRetries} 次)...`);
+
+      // 步骤1: 返回鸽子列表（如果当前在轨迹视图）
+      const backButton = page.getByRole('button', { name: /返回|关闭|close/i });
+      if (await backButton.isVisible().catch(() => false)) {
+        await backButton.click();
+        await page.waitForTimeout(1000);
       }
 
-      // 步骤2: 切换到2D模式
-      await button2D.click();
-      await page.waitForTimeout(2000);
+      // 步骤2: 取消之前的选择
+      const selectedCheckbox = page.locator('input[type="checkbox"]:checked').first();
+      if (await selectedCheckbox.isVisible().catch(() => false)) {
+        await selectedCheckbox.click();
+        await page.waitForTimeout(500);
+      }
 
-      // 步骤3: 验证地图瓦片加载
-      const tileCount = await page.locator('.amap-container img').count();
+      // 步骤3: 重新选择鸽子
+      const checkboxes = await page.locator('input[type="checkbox"]').all();
+      if (checkboxes.length > pigeonIndex) {
+        await checkboxes[pigeonIndex].click();
+        await page.waitForTimeout(500);
+        console.log(`✓ 已选择鸽子 #${pigeonIndex}`);
+      } else {
+        throw new Error(`鸽子索引 ${pigeonIndex} 超出范围`);
+      }
 
-      if (tileCount > 50) {
-        console.log(`✅ 2D模式切换成功，地图瓦片数: ${tileCount}`);
+      // 步骤4: 点击查看轨迹
+      const viewButton = page.getByRole('button', { name: /查看轨迹|view.*trajectory/i });
+      await viewButton.click();
+
+      // 步骤5: 等待数据加载
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(3000); // 额外等待数据处理
+
+      // 步骤6: 切换到 2D 模式（如果当前不是）
+      const button2D = page.getByRole('button', { name: /2d.*模式|2d.*mode/i });
+      if (await button2D.isVisible().catch(() => false)) {
+        await button2D.click();
+        await page.waitForTimeout(2000);
+      }
+
+      // 步骤7: 验证地图瓦片加载（静态模式特征）
+      const tileCount = await page.locator('.amap-container img, .amap-layer img').count();
+
+      // 步骤8: 验证轨迹线存在（通过 Canvas 检查）
+      const canvas = await page.locator('canvas.amap-layer').count();
+
+      if (tileCount > 50 && canvas > 0) {
+        console.log(`✅ 2D 轨迹加载成功！`);
+        console.log(`   - 地图瓦片数: ${tileCount}`);
+        console.log(`   - Canvas 图层: ${canvas}`);
         return true;
       } else {
-        console.warn(`⚠️ 地图瓦片不足 (${tileCount})，重试...`);
+        console.warn(`⚠️ 轨迹未完全加载 (瓦片: ${tileCount}, Canvas: ${canvas})，准备重试...`);
       }
+
     } catch (error) {
-      console.error(`❌ 第 ${i + 1} 次切换失败:`, error);
-      if (i === retries - 1) throw error;
+      console.error(`❌ 第 ${attempt + 1} 次加载失败:`, error);
+      if (attempt === maxRetries - 1) {
+        throw new Error(`2D 轨迹加载失败，已重试 ${maxRetries} 次`);
+      }
     }
   }
 
-  throw new Error('切换到2D模式失败');
+  return false;
+}
+
+/**
+ * 确保处于 2D 静态模式
+ * 区分静态模式和动态模式的关键
+ */
+async function ensure2DStaticMode(page: Page): Promise<boolean> {
+  // 检查当前是否有播放控制按钮（动态模式特征）
+  const playButton = page.getByRole('button').filter({ hasText: /play_arrow|播放/ });
+  const pauseButton = page.getByRole('button').filter({ hasText: /pause|暂停/ });
+
+  const isPlaying = await pauseButton.isVisible().catch(() => false);
+
+  if (isPlaying) {
+    // 当前在动态播放模式，需要暂停或切换到静态模式
+    console.log('⚠️ 当前为 2D 动态模式，切换到静态模式...');
+
+    // 查找静态模式按钮（可能是 timeline 按钮或其他切换按钮）
+    const timelineButton = page.locator('button:has(img[alt="timeline"])');
+    if (await timelineButton.isVisible().catch(() => false)) {
+      await timelineButton.click();
+      await page.waitForTimeout(1000);
+    }
+  }
+
+  // 验证静态模式特征：轨迹点数量 >= 3
+  const markerCount = await page.locator('[title*="2025-"]').count();
+
+  if (markerCount >= 3) {
+    console.log(`✅ 已切换到 2D 静态模式，轨迹点数: ${markerCount}`);
+    return true;
+  } else {
+    console.warn(`⚠️ 轨迹点不足 (${markerCount})，可能仍在动态模式`);
+    return false;
+  }
 }
 ```
 
@@ -152,27 +237,71 @@ async function waitFor2DDataLoaded(page: Page): Promise<void> {
 
 ### 预防措施清单
 
-- ✅ **总是使用3D→2D切换序列**
-- ✅ **等待地图瓦片加载完成** (>50个img元素)
-- ✅ **检查轨迹线是否存在** (红色虚线)
-- ✅ **检查控制台无gpx2d错误**
-- ✅ **失败时自动重试** (最多2次)
+- ✅ **使用重新选择流程** (返回列表 → 取消选择 → 重新选择 → 查看轨迹)
+- ✅ **等待数据加载完成** (networkidle + 3秒缓冲)
+- ✅ **验证地图瓦片加载** (>50 个 img 元素)
+- ✅ **验证 Canvas 图层存在** (轨迹线渲染层)
+- ✅ **区分 2D 静态和动态模式** (通过轨迹点数量判断)
+- ✅ **失败时自动重试** (最多 3 次)
+- ✅ **检查控制台无 gpx2d 错误**
+
+### 模式区分要点
+
+| 特征 | 2D 静态模式 | 2D 动态模式 |
+|-----|------------|------------|
+| **轨迹点数量** | ≥ 3 个 | < 3 个（通常只有当前位置） |
+| **轨迹线** | 完整红色轨迹线 | 部分轨迹线（已飞过路径） |
+| **播放控制** | 无播放按钮或显示"播放" | 显示"暂停"按钮（播放中） |
+| **用途** | 查看完整飞行路径 | 观看飞行动画回放 |
 
 ### 测试用例
 
 ```typescript
-test('TC-#1: 验证2D模式切换', async ({ page }) => {
+test('TC-#1: 验证 2D 轨迹重新加载', async ({ page }) => {
+  // 步骤1: 进入赛事
+  await page.goto('https://skyracing.com.cn');
   await enterFirstRace(page);
-  await selectPigeon(page, 0);
-  await viewTrajectory(page);
 
-  // 使用解决方案
-  const success = await switchTo2DMode(page, 2);
+  // 步骤2: 使用新方法加载 2D 轨迹
+  const success = await reload2DTrajectory(page, 0, 3);
 
-  // 验证
+  // 验证: 轨迹加载成功
   expect(success).toBe(true);
+
+  // 验证: 地图瓦片已加载
   const tileCount = await page.locator('.amap-container img').count();
   expect(tileCount).toBeGreaterThan(50);
+
+  // 验证: Canvas 图层存在
+  const canvasCount = await page.locator('canvas.amap-layer').count();
+  expect(canvasCount).toBeGreaterThan(0);
+
+  // 验证: 处于静态模式
+  const isStatic = await ensure2DStaticMode(page);
+  expect(isStatic).toBe(true);
+});
+
+test('TC-#1-02: 区分 2D 静态和动态模式', async ({ page }) => {
+  await setupTrajectoryView(page); // 假设已进入轨迹视图
+
+  // 确保处于静态模式
+  const isStatic = await ensure2DStaticMode(page);
+  expect(isStatic).toBe(true);
+
+  // 验证静态模式特征
+  const markerCount = await page.locator('[title*="2025-"]').count();
+  expect(markerCount).toBeGreaterThanOrEqual(3);
+
+  // 可选: 切换到动态模式并验证
+  const timelineButton = page.locator('button:has(img[alt="timeline"])');
+  if (await timelineButton.isVisible()) {
+    await timelineButton.click();
+    await page.waitForTimeout(1000);
+
+    // 验证动态模式特征（轨迹点减少）
+    const dynamicMarkerCount = await page.locator('[title*="2025-"]').count();
+    expect(dynamicMarkerCount).toBeLessThan(markerCount);
+  }
 });
 ```
 

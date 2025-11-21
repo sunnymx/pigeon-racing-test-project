@@ -1,0 +1,30 @@
+{
+  "name": "pigeon-racing-test-project",
+  "version": "1.0.0",
+  "description": "Automated testing for Skyracing GPS pigeon tracking system",
+  "scripts": {
+    "test": "playwright test",
+    "test:p0": "playwright test --grep @P0",
+    "test:p1": "playwright test --grep @P1",
+    "test:p2": "playwright test --grep @P2",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen https://skyracing.com.cn"
+  },
+  "keywords": [
+    "playwright",
+    "e2e",
+    "automation",
+    "testing",
+    "pigeon-racing"
+  ],
+  "author": "Test Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

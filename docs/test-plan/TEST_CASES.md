@@ -502,6 +502,65 @@ expect(screenshot1).not.toEqual(screenshot2);
 
 ---
 
+### TC-03-008: 查看轨迹按钮 2D/3D 模式选择
+**优先级**: P1
+**前置条件**: 已进入赛事，准备选择鸽子
+**测试步骤**:
+1. 在排名列表页面，观察"查看轨迹"按钮组中的2D/3D切换按钮
+2. 验证按钮显示文本（"2D" 或 "3D"）
+3. 测试 **按钮显示"3D"** 时: 选择鸽子，点击"查看轨迹"，验证进入 3D 模式
+4. 返回列表，点击切换按钮改为显示"2D"
+5. 选择鸽子，点击"查看轨迹"，验证进入 2D 模式
+
+**预期结果**:
+- ✅ 2D/3D 切换按钮存在并可点击
+- ✅ 按钮显示"3D"时: 进入 3D 播放模式（Cesium引擎，视角1/2按钮，播放控制）
+- ✅ 按钮显示"2D"时: 进入 2D 静态模式（AMap 2.0，红色轨迹线，无3D控制）
+
+**验证方法**:
+```typescript
+// 步骤1: 验证按钮存在
+const modeButton = page.getByRole('button', { name: /2D|3D/ });
+await expect(modeButton).toBeVisible();
+
+// 步骤2: 测试按钮显示"3D"时进入3D模式
+const buttonText = await modeButton.textContent();
+if (buttonText.includes('3D')) {
+  // 选择鸽子
+  await page.locator('input[type="checkbox"]').first().click();
+  await page.getByRole('button', { name: '查看轨迹' }).click();
+
+  // 验证进入 3D 模式
+  await page.waitForTimeout(3000);
+  await expect(page.getByRole('button', { name: '视角1' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '视角2' })).toBeVisible();
+}
+
+// 步骤3: 切换到"2D"状态并测试
+await page.getByRole('button', { name: '退出赛事' }).click();
+await page.getByRole('button', { name: '进入' }).first().click();
+await modeButton.click(); // 切换到显示"2D"
+await page.locator('input[type="checkbox"]').first().click();
+await page.getByRole('button', { name: '查看轨迹' }).click();
+
+// 验证进入 2D 模式（无3D控制，有AMap瓦片）
+await page.waitForTimeout(3000);
+await expect(page.getByRole('button', { name: '视角1' })).not.toBeVisible();
+await expect(page.getByRole('button', { name: 'view_in_ar 3D模式' })).toBeVisible();
+```
+
+**实际测试结果** (2025-11-17):
+- ✅ **测试通过**: 按钮显示的文本（"2D"或"3D"）准确指示点击"查看轨迹"后将进入的模式
+- ✅ **3D模式测试**: 按钮显示"3D" → 点击"查看轨迹" → 成功进入3D模式（Cesium 3D渲染，视角1/2按钮可见）
+- ✅ **2D模式测试**: 按钮显示"2D" → 点击"查看轨迹" → 成功进入2D模式（AMap平面地图，红色轨迹线，无3D控制）
+- 📝 **关键发现**: 按钮显示的文本是模式指示器，而非checkbox勾选状态
+
+**参考截图**:
+- `test-3d-mode-confirmed.png` - 按钮显示"3D"时进入3D模式
+- `test-2d-mode-confirmed.png` - 按钮显示"2D"时进入2D模式
+
+---
+
 ## 04. 3D 轨迹播放测试 (track-3d-playback.spec.ts)
 
 ### TC-04-001: 切换到3D模式

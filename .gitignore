@@ -9,6 +9,7 @@ pnpm-lock.yaml
 /playwright-report/
 /playwright/.cache/
 /reports/
+test-results.json
 *.log
 
 # Build outputs
