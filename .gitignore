@@ -57,6 +57,7 @@ $RECYCLE.BIN/
 *.swp
 *.swo
 *~
+*.backup
 
 # Claude Desktop (optional, if not sharing personal configs)
 .claude/settings.local.json
@@ -80,8 +81,8 @@ lerna-debug.log*
 
 # Screenshots and videos from failed tests (optional)
 # Comment these out if you want to keep them in git
-# screenshots/
-# videos/
+screenshots/
+videos/
 
 # Misc
 *.seed

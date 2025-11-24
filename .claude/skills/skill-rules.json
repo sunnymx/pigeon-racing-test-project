@@ -1,0 +1,480 @@
+{
+  "version": "1.0",
+  "description": "Skill activation triggers for 軌跡filter project",
+  "skills": {
+    "spec-version-manager": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Automated specification document version management",
+      "promptTriggers": {
+        "keywords": [
+          "規格",
+          "版本",
+          "spec",
+          "version",
+          "更新",
+          "升級",
+          "specification",
+          "update"
+        ],
+        "intentPatterns": [
+          "更新.*規格",
+          "升級.*版本",
+          "修改.*spec",
+          "(update|modify).*spec",
+          "(update|upgrade).*version"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [
+          "spec/**/*.md"
+        ],
+        "contentPatterns": [
+          "版本歷史",
+          "Version History",
+          "## 🔄 版本歷史"
+        ]
+      }
+    },
+    "ai-driven-dev-workflow": {
+      "type": "utility",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Ticket-driven development with TDD methodology",
+      "promptTriggers": {
+        "keywords": [
+          "ticket",
+          "執行",
+          "TDD",
+          "實作",
+          "execute",
+          "implement"
+        ],
+        "intentPatterns": [
+          "執行.*ticket",
+          "實作.*ticket",
+          "開始.*TDD",
+          "(execute|run).*ticket",
+          "(implement|start).*ticket"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [
+          "tickets/**/*.md"
+        ]
+      }
+    },
+    "skill-developer": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Meta-skill for creating and managing Claude Code skills",
+      "promptTriggers": {
+        "keywords": [
+          "skill system",
+          "create skill",
+          "add skill",
+          "skill triggers",
+          "skill rules",
+          "skill development",
+          "skill-rules.json",
+          "創建 skill",
+          "建立 skill"
+        ],
+        "intentPatterns": [
+          "(create|add|modify|build).*skill",
+          "skill.*(work|trigger|activate|system)",
+          "(how do|how does|explain).*skill",
+          "創建.*skill",
+          "建立.*skill"
+        ]
+      }
+    },
+    "python-fastapi-guidelines": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "fastapi",
+          "pydantic",
+          "postgresql",
+          "postgis",
+          "psycopg2",
+          "pytest",
+          "mypy",
+          "type hint",
+          "repository pattern",
+          "dependency injection",
+          "async database",
+          "spatial query",
+          "geography",
+          "geometry",
+          "gist index",
+          "error handling",
+          "structured logging",
+          "api endpoint",
+          "router",
+          "middleware",
+          "cors",
+          "request validation",
+          "response model",
+          "field validator",
+          "model validator",
+          "database session",
+          "transaction",
+          "connection pool",
+          "test fixture",
+          "parametrize",
+          "async test",
+          "添加",
+          "創建",
+          "新增",
+          "修改",
+          "更新",
+          "實現",
+          "實作",
+          "構建",
+          "編寫",
+          "開發",
+          "幫我",
+          "請",
+          "路由",
+          "端點",
+          "接口",
+          "後端",
+          "服務",
+          "數據庫",
+          "驗證",
+          "測試",
+          "錯誤處理",
+          "日誌",
+          "類型提示",
+          "異步",
+          "依賴注入",
+          "倉庫模式",
+          "空間查詢",
+          "地理數據",
+          "事務",
+          "連接池"
+        ],
+        "intentPatterns": [
+          "(create|add|implement|build).*?(api|endpoint|route|router)",
+          "(setup|configure|initialize).*?(database|postgres|postgis)",
+          "(add|create|implement).*?(validation|validator)",
+          "(write|create|add).*?(test|fixture)",
+          "(handle|catch|manage).*?(error|exception)",
+          "(setup|configure|add).*?(logging|log)",
+          "(optimize|improve).*?(query|performance|speed)",
+          "(type|typing).*?(hint|annotation|check)",
+          "(spatial|geographic|geometry).*?(query|index|calculation)",
+          "how.*?(validate|serialize|deserialize)",
+          "what.*?(pattern|best practice|standard)",
+          "debug.*?(fastapi|pydantic|postgres)",
+          "(create|add|implement|build|添加|創建|新增|實現|構建).*?(api|endpoint|route|router|路由|端點|接口)",
+          "(setup|configure|initialize|配置|初始化|設置).*?(database|postgres|postgis|數據庫|資料庫)",
+          "(add|create|implement|添加|創建|實現).*?(validation|validator|驗證|校驗)",
+          "(write|create|add|編寫|創建|添加).*?(test|fixture|測試)",
+          "(handle|catch|manage|處理|捕獲).*?(error|exception|錯誤|異常)",
+          "(optimize|improve|優化|改進).*?(query|performance|查詢|性能)",
+          "(幫我|請).{0,20}(endpoint|route|api|路由|端點|接口)",
+          "(如何|怎麼|怎樣).{0,20}(validate|test|deploy|驗證|測試|部署)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [
+          "src/api/**/*.py",
+          "src/core/**/*.py",
+          "src/db/**/*.py",
+          "src/models/**/*.py",
+          "src/repositories/**/*.py",
+          "src/schemas/**/*.py",
+          "src/services/**/*.py",
+          "tests/**/*.py"
+        ],
+        "contentPatterns": [
+          "from fastapi import",
+          "from pydantic import",
+          "import psycopg2",
+          "import psycopg",
+          "from sqlalchemy",
+          "import pytest",
+          "from typing import",
+          "@router\\.",
+          "@app\\.",
+          "APIRouter\\(",
+          "BaseModel",
+          "Field\\(",
+          "@field_validator",
+          "@model_validator",
+          "ST_DWithin",
+          "ST_Distance",
+          "geography\\(",
+          "geometry\\(",
+          "async def.*?->",
+          "await.*?execute",
+          "@pytest\\.fixture",
+          "@pytest\\.mark"
+        ]
+      },
+      "skipConditions": {
+        "sessionTracking": true,
+        "fileMarkers": ["# @skip-python-guidelines"],
+        "envVars": ["SKIP_PYTHON_GUIDELINES"]
+      }
+    },
+    "vue-leaflet-guidelines": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Frontend development best practices for Vue 3, Leaflet, and Chart.js",
+      "promptTriggers": {
+        "keywords": [
+          "vue",
+          "vue 3",
+          "vue3",
+          "composition api",
+          "script setup",
+          "ref",
+          "reactive",
+          "computed",
+          "watcheffect",
+          "onmounted",
+          "onunmounted",
+          "composables",
+          "pinia",
+          "vueuse",
+          "leaflet",
+          "map",
+          "marker",
+          "geojson",
+          "polyline",
+          "chart.js",
+          "chartjs",
+          "chart",
+          "visualization",
+          "canvas",
+          "responsive design",
+          "virtual scrolling",
+          "accessibility",
+          "wcag",
+          "dark mode",
+          "theme",
+          "component organization",
+          "single file component",
+          "sfc",
+          "vitest",
+          "cypress",
+          "typescript vue",
+          "definemodel",
+          "defineprops",
+          "memory leak",
+          "cleanup",
+          "添加",
+          "創建",
+          "新增",
+          "修改",
+          "更新",
+          "實現",
+          "實作",
+          "構建",
+          "編寫",
+          "開發",
+          "幫我",
+          "請",
+          "組件",
+          "頁面",
+          "前端",
+          "地圖",
+          "圖表",
+          "標記",
+          "圖層",
+          "響應式",
+          "主題",
+          "可訪問性",
+          "虛擬滾動",
+          "內存洩漏",
+          "狀態管理",
+          "響應性",
+          "組合式",
+          "單文件組件",
+          "可組合函數",
+          "模板"
+        ],
+        "intentPatterns": [
+          "(create|add|implement|build).*?(vue|component|composable)",
+          "(setup|configure|initialize).*?(map|leaflet|chart)",
+          "(add|create|implement).*?(marker|layer|polyline)",
+          "(update|sync|synchronize).*?(chart|data|state)",
+          "(fix|prevent|solve).*?(memory leak|cleanup)",
+          "(optimize|improve).*?(performance|rendering|speed)",
+          "(make|add).*?(responsive|mobile-friendly)",
+          "(implement|add).*?(dark mode|theme|accessibility)",
+          "(refactor|organize|structure).*?(component|code)",
+          "(write|create|add).*?(test|vitest|cypress)",
+          "how.*?(vue|leaflet|chart|composable)",
+          "what.*?(pattern|best practice|approach)",
+          "debug.*?(vue|map|chart|reactivity)",
+          "(create|add|implement|build|添加|創建|新增|實現|構建).*?(vue|component|composable|組件|元件)",
+          "(setup|configure|initialize|配置|初始化|設置).*?(map|leaflet|chart|地圖|圖表)",
+          "(add|create|implement|添加|創建|實現).*?(marker|layer|polyline|標記|圖層)",
+          "(update|sync|synchronize|更新|同步).*?(chart|data|state|圖表|數據|狀態)",
+          "(fix|prevent|solve|修復|預防|解決).*?(memory leak|cleanup|內存洩漏|清理)",
+          "(optimize|improve|優化|改進).*?(performance|rendering|性能|渲染)",
+          "(幫我|請).{0,20}(component|map|chart|組件|地圖|圖表)",
+          "(如何|怎麼|怎樣).{0,20}(vue|leaflet|responsive|響應式)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [
+          "frontend/**/*.{vue,js,ts,html}",
+          "src/**/*.vue",
+          "src/components/**/*.{vue,js,ts}",
+          "src/composables/**/*.{js,ts}",
+          "src/views/**/*.vue",
+          "src/features/**/*.vue",
+          "tests/**/*.{spec,test}.{js,ts}"
+        ],
+        "contentPatterns": [
+          "import.*vue",
+          "from 'vue'",
+          "<script setup",
+          "defineProps",
+          "defineEmits",
+          "defineModel",
+          "L\\.map\\(",
+          "L\\.marker\\(",
+          "new Chart\\(",
+          "chart\\.update\\(",
+          "usePinia",
+          "createPinia",
+          "useVueUse",
+          "onMounted\\(",
+          "onUnmounted\\(",
+          "watchEffect\\(",
+          "<template>",
+          "ref\\(",
+          "reactive\\(",
+          "computed\\("
+        ]
+      },
+      "skipConditions": {
+        "sessionTracking": true,
+        "fileMarkers": ["<!-- @skip-vue-guidelines -->", "// @skip-vue-guidelines"],
+        "envVars": ["SKIP_VUE_GUIDELINES"]
+      }
+    },
+    "teaching-facilitator": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Structured technical teaching with progressive disclosure for PostGIS, FastAPI, Testing, Git",
+      "promptTriggers": {
+        "keywords": [
+          "teach me",
+          "teach",
+          "explain how",
+          "explain what",
+          "how to use",
+          "what is",
+          "tutorial",
+          "guide",
+          "learn about",
+          "understand",
+          "教我",
+          "解釋如何",
+          "解釋什麼",
+          "如何使用",
+          "什麼是",
+          "教學",
+          "指南",
+          "學習",
+          "了解"
+        ],
+        "intentPatterns": [
+          "(teach|explain|show).*?(how|what)",
+          "(如何|怎麼).*?(使用|實現|做)",
+          "can you (explain|teach|show)",
+          "(我想|幫我).*?(學習|了解)",
+          "what is.*?(postgis|fastapi|pydantic|testing|git)",
+          "how to.*?(use|implement|work with)",
+          "什麼是.*?(postgis|fastapi|pydantic|測試|git)",
+          "如何.*?(使用|實作|運作)"
+        ]
+      },
+      "contextTriggers": {
+        "patterns": [
+          "I want to learn",
+          "new to",
+          "beginner",
+          "我想學",
+          "新手",
+          "初學",
+          "不熟悉"
+        ]
+      },
+      "notes": "Use when user explicitly requests structured teaching. Different from learning-collaboration-mode: this provides formal teaching flow with reference docs."
+    },
+    "learning-collaboration-mode": {
+      "type": "utility",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Teaching-focused development collaboration with embedded learning",
+      "promptTriggers": {
+        "keywords": [
+          "教我",
+          "解釋",
+          "為什麼",
+          "如何",
+          "學習",
+          "teach me",
+          "teach",
+          "explain",
+          "why",
+          "how does",
+          "how do",
+          "learn",
+          "understand",
+          "show me",
+          "clarify",
+          "what is",
+          "什麼是"
+        ],
+        "intentPatterns": [
+          "(教我|teach me|show me).*(如何|how|做)",
+          "(解釋|explain|clarify).*(為什麼|why|code|代碼|架構|design|設計)",
+          "(為什麼|why).*(這樣|用|不用)",
+          "(什麼是|what is).*(pattern|模式|concept|概念)",
+          "(如何|how).*(work|運作|實作|implement)"
+        ]
+      },
+      "contextTriggers": {
+        "patterns": [
+          "first time using",
+          "首次使用",
+          "新技術",
+          "new technology",
+          "不太懂",
+          "don't understand",
+          "看不懂",
+          "confusing"
+        ]
+      },
+      "notes": "Auto-activates when: (1) User asks 'why' or 'how', (2) New concept detected, (3) Counter-intuitive design, (4) Reusable pattern identified"
+    }
+  },
+  "notes": {
+    "enforcement_types": {
+      "suggest": "Skill suggestion appears but doesn't block execution",
+      "block": "Requires skill to be used before proceeding (guardrail)",
+      "warn": "Shows warning but allows proceeding"
+    },
+    "priority_levels": {
+      "critical": "Highest - Always trigger when matched",
+      "high": "Important - Trigger for most matches",
+      "medium": "Moderate - Trigger for clear matches",
+      "low": "Optional - Trigger only for explicit matches"
+    }
+  }
+}
