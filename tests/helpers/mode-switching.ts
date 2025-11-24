@@ -1,20 +1,25 @@
 /**
  * mode-switching.ts - 2D/3D 模式切換
  *
- * 職責：處理 2D/3D 模式切換的不穩定性
+ * ⚠️ IMPORTANT UPDATE (2025-11-24): There are THREE types of mode buttons!
+ *
+ * Button Type 1: Preference selector (選擇鴿子畫面) - NOT used by this module
+ * Button Type 2: Map mode switcher (地圖功能選單) - ⭐ THIS IS WHAT WE USE
+ * Button Type 3: Static/Dynamic toggle (2D only)
+ *
+ * 職責：處理軌跡視圖中的 2D/3D 模式切換
+ * - 操作 Button Type 2（地圖功能選單中的按鈕）
  * - 根據按鈕文字確保正確模式
- * - 確保進入 2D 模式（注意：已知問題 #1 的解決方案在 trajectory-reload.ts）
  * - 實作可靠的 3D 切換
  * - 偵測當前視圖模式（2D-static / 2D-dynamic / 3D）
  *
- * ⚠️ 重要：已知問題 #1「2D 軌跡初次載入失敗」的推薦解決方案是「重新加載軌跡」
- * 請使用 trajectory-reload.ts 中的 reload2DTrajectory() 函數
- *
- * 關鍵理解：按鈕顯示的文字（"2D" 或 "3D"）指示點擊後將進入的模式
+ * 關鍵理解 (Button Type 2):
+ * - 在 2D 地圖時，按鈕顯示「3D模式」→ 點擊進入 3D
+ * - 在 3D 地圖時，按鈕顯示「2D模式」→ 點擊進入 2D
+ * - 按鈕文字 = 點擊後將進入的模式（不是當前模式）
  *
  * 參考文檔：
- * - docs/test-plan/KNOWN_ISSUES_SOLUTIONS.md#問題-1 (方法1: 重新加載軌跡)
- * - docs/guides/troubleshooting.md
+ * - docs/guides/mode-switching.md
  * - docs/architecture/test-framework.md#2d3d-mode-architecture
  */
 
@@ -25,10 +30,14 @@ import { waitForModeSwitch } from './wait-utils';
 /**
  * 根據按鈕文字確保進入指定模式
  *
+ * ⚠️ IMPORTANT: This function operates Button Type 2 (地圖功能選單中的模式切換按鈕)
+ * NOT Button Type 1 (選擇鴿子畫面的偏好設定按鈕)
+ *
  * 策略：
- * 1. 讀取按鈕顯示的文字
- * 2. 如果按鈕顯示 "3D"，則當前在 2D，點擊會進入 3D
- * 3. 如果按鈕顯示 "2D"，則當前在 3D，點擊會進入 2D
+ * 1. 找到軌跡視圖中的模式切換按鈕（Button Type 2）
+ * 2. 讀取按鈕顯示的文字
+ * 3. 如果按鈕顯示 "3D模式"，則當前在 2D，點擊會進入 3D
+ * 4. 如果按鈕顯示 "2D模式"，則當前在 3D，點擊會進入 2D
  *
  * @param page - Playwright Page 物件
  * @param targetMode - 目標模式 '2D' | '3D'
@@ -38,8 +47,12 @@ export async function ensureModeByText(
   page: Page,
   targetMode: '2D' | '3D'
 ): Promise<void> {
-  // 尋找模式切換按鈕（可能顯示 "2D" 或 "3D"）
-  const modeButton = page.getByRole('button', { name: /2D|3D/ }).first();
+  console.log(`🔄 ensureModeByText: target mode = ${targetMode}`);
+
+  // Find Button Type 2: Map mode switcher button in trajectory view
+  // This button includes the "view_in_ar" icon and shows "2D模式" or "3D模式"
+  // NOT Button Type 1 (preference selector) which shows "2d  2D模式" format
+  const modeButton = page.getByRole('button', { name: /view_in_ar [23]D模式/ });
 
   // 確認按鈕存在
   await expect(modeButton).toBeVisible({ timeout: 5000 });
@@ -53,78 +66,53 @@ export async function ensureModeByText(
 
   console.log(`📍 當前模式按鈕顯示：${buttonText.trim()}`);
 
-  // 判斷是否需要切換
+  // Determine if we need to click based on button text
+  // Button shows "3D模式" → currently in 2D → click if target is 3D
+  // Button shows "2D模式" → currently in 3D → click if target is 2D
   const needSwitch =
     (targetMode === '3D' && buttonText.includes('3D')) ||
     (targetMode === '2D' && buttonText.includes('2D'));
 
   if (needSwitch) {
-    console.log(`🔄 需要切換到 ${targetMode} 模式`);
+    console.log(`🔄 需要切換到 ${targetMode} 模式 (按鈕顯示 "${buttonText.trim()}")`);
 
-    // Store current button text before clicking
-    const beforeText = buttonText.trim();
-
-    // Click with force option to overcome potential overlays
+    // Click the button to switch mode
     await modeButton.click({ force: true });
     console.log(`  ✓ 已點擊模式切換按鈕`);
 
-    // Wait for button text to change (indicates mode switch started)
-    await page.waitForTimeout(1000);
+    // Wait for mode switch to complete
+    await waitForModeSwitch(page, targetMode);
 
-    // Verify button text changed
-    const afterText = await modeButton.textContent().catch(() => '');
-    if (afterText && afterText.trim() === beforeText) {
-      console.log(`  ⚠️  按鈕文字未改變，嘗試再次點擊`);
-      await page.waitForTimeout(500);
-      await modeButton.click({ force: true });
+    // Verify with getCurrentMode()
+    const actualMode = await getCurrentMode(page);
+    if (actualMode !== targetMode) {
+      throw new Error(`❌ 模式切換失敗：目標 ${targetMode}，實際 ${actualMode}`);
     }
 
-    await waitForModeSwitch(page, targetMode);
+    console.log(`✅ 已成功切換到 ${targetMode} 模式`);
   } else {
-    // Button suggests we're already in target mode, but verify this is true
-    console.log(`📍 按鈕顯示已在 ${targetMode} 模式，驗證中...`);
+    // Button text suggests we're already in target mode
+    console.log(`📍 按鈕顯示 "${buttonText.trim()}" → 可能已在 ${targetMode} 模式，驗證中...`);
 
-    // Verify by checking for characteristic elements
-    if (targetMode === '3D') {
-      const view1Button = page.getByRole('button', { name: '視角1' });
-      const is3D = await view1Button.isVisible().catch(() => false);
-
-      if (!is3D) {
-        console.log(`⚠️  視角按鈕未顯示，強制切換到 3D 模式`);
-
-        // Store current button text
-        const beforeText = buttonText.trim();
-
-        // Click with force
-        await modeButton.click({ force: true });
-        console.log(`  ✓ 已點擊模式切換按鈕`);
-
-        // Wait and verify button text changed
-        await page.waitForTimeout(1000);
-        const afterText = await modeButton.textContent().catch(() => '');
-        if (afterText && afterText.trim() === beforeText) {
-          console.log(`  ⚠️  按鈕文字未改變，嘗試再次點擊`);
-          await page.waitForTimeout(500);
-          await modeButton.click({ force: true });
-        }
-
-        await waitForModeSwitch(page, targetMode);
-      } else {
-        console.log(`✅ 已在 ${targetMode} 模式（已驗證）`);
-      }
+    // Verify with getCurrentMode()
+    const actualMode = await getCurrentMode(page);
+    if (actualMode === targetMode) {
+      console.log(`✅ 確認已在 ${targetMode} 模式`);
     } else {
-      // For 2D, check for map container
-      const mapContainer = page.locator('.amap-container');
-      const is2D = await mapContainer.isVisible().catch(() => false);
+      console.log(`⚠️  實際模式 (${actualMode}) 與預期不符，嘗試切換...`);
 
-      if (!is2D) {
-        console.log(`⚠️  2D 地圖容器未顯示，強制切換到 2D 模式`);
-        await modeButton.click({ force: true });
-        await page.waitForTimeout(1000);
-        await waitForModeSwitch(page, targetMode);
-      } else {
-        console.log(`✅ 已在 ${targetMode} 模式（已驗證）`);
+      // Force click even though button text suggests otherwise
+      await modeButton.click({ force: true });
+      console.log(`  ✓ 已點擊模式切換按鈕`);
+
+      await waitForModeSwitch(page, targetMode);
+
+      const newMode = await getCurrentMode(page);
+      if (newMode !== targetMode) {
+        throw new Error(`❌ 強制切換後仍失敗：目標 ${targetMode}，實際 ${newMode}`);
       }
+
+      console.log(`✅ 已成功切換到 ${targetMode} 模式`);
     }
   }
 }
@@ -157,19 +145,38 @@ export async function switchTo2DReliably(page: Page): Promise<void> {
 }
 
 /**
- * 可靠的 3D 切換
+ * 可靠的 3D 切換（確保進入 3D 模式）
  *
  * @param page - Playwright Page 物件
  * @throws 如果切換失敗
  */
 export async function switchTo3DReliably(page: Page): Promise<void> {
-  console.log('🔄 開始切換到 3D 模式...');
+  console.log('🔄 確保進入 3D 模式...');
 
+  // 先檢查當前模式
+  const currentMode = await getCurrentMode(page);
+  console.log(`📍 當前模式：${currentMode}`);
+
+  if (currentMode === '3D') {
+    console.log('✅ 已在 3D 模式，無需切換');
+    return;
+  }
+
+  // 如果在 2D，執行切換
+  console.log('🔄 從 2D 切換到 3D...');
   await ensureModeByText(page, '3D');
 
-  // 驗證 3D 特徵元素
-  const view1Button = page.getByRole('button', { name: '視角1' });
-  await expect(view1Button).toBeVisible({ timeout: 10000 });
+  // 等待 3D 模式載入 - 使用視覺元素檢查，不依賴 window.Cesium
+  console.log('⏳ 等待 3D 模式載入...');
+
+  // 驗證 3D 特徵元素（視角按鈕）
+  // 使用正則匹配繁簡體：視角/视角
+  const view1Button = page.getByRole('button', { name: /[视視]角1/ });
+  await expect(view1Button).toBeVisible({ timeout: 30000 });
+  console.log('  ✓ 視角控制按鈕已顯示');
+
+  // 額外等待確保 3D 完全初始化
+  await page.waitForTimeout(3000);
 
   console.log('✅ 3D 模式切換成功');
 }
@@ -190,8 +197,8 @@ export async function detectCurrentViewMode(
   // 先用通用的模式檢測取得大類別（2D/3D）
   const coarseMode = await getCurrentMode(page);
 
-  // 檢查 3D 特徵
-  const view1Button = page.getByRole('button', { name: '視角1' });
+  // 檢查 3D 特徵（支援簡繁體）
+  const view1Button = page.getByRole('button', { name: /[视視]角1/ });
   const is3D = await view1Button.isVisible().catch(() => false);
 
   if (is3D) {

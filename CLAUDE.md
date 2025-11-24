@@ -10,12 +10,39 @@ Automated testing project for a pigeon racing GPS tracking system (https://skyra
 
 ## 🚨 Critical Gotchas
 
-### 2D/3D Mode Selection (TC-03-008)
+### 2D/3D Mode Selection (UPDATED 2025-11-24)
 
-**CRITICAL**: Button's **displayed text** (not checkbox state) determines which mode will be entered:
+**CRITICAL**: There are **THREE different types of buttons** - don't confuse them!
 
-- Button shows "3D" → clicking "查看軌跡" enters **3D mode**
-- Button shows "2D" → clicking "查看軌跡" enters **2D mode**
+#### Button Type 1: Preference Selector (選擇鴿子畫面)
+**Location**: Next to "查看軌跡" button when selecting pigeons (red badge showing "3D")
+**Purpose**: Sets which mode will be used when clicking "查看軌跡"
+**Behavior**:
+- This is a **preference setting**
+- Can be toggled freely
+- Only affects **next** trajectory view, NOT current map
+- ❌ Do NOT use this to switch current map mode
+
+#### Button Type 2: Map Mode Switcher (地圖功能選單) ⭐ PRIMARY
+**Location**: In trajectory view's map control panel
+**Purpose**: **Switches current displayed map** between 2D ↔ 3D
+**Behavior**:
+- When in 2D map → Shows "3D模式" → Click to enter 3D
+- When in 3D map → Shows "2D模式" → Click to enter 2D
+- ✅ **Button text = mode you'll enter** (as originally documented)
+- ✅ **Use this for ensureModeByText()**
+
+#### Button Type 3: Static/Dynamic Toggle (2D only)
+**Location**: Map control panel (only visible in 2D mode)
+**Purpose**: Switches between "靜態軌跡" and "動態軌跡" in 2D
+**Behavior**:
+- Only appears in 2D mode
+- Toggles trajectory display style
+
+**Detecting Current Mode** (Use this method):
+- ✅ **2D Mode**: Check for AMap container (`.amap-container`)
+- ✅ **3D Mode**: Check for Cesium controls (視角1/視角2 buttons)
+- ❌ **WRONG**: Do NOT use button text to detect current mode
 
 📖 **Deep dive**: [Mode Switching Guide](docs/guides/mode-switching.md)
 🏗️ **Architecture**: [Test Framework](docs/architecture/test-framework.md#2d3d-mode-architecture)

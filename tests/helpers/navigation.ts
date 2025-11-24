@@ -118,47 +118,75 @@ export async function openTrajectory(page: Page): Promise<void> {
 /**
  * 取得當前模式（2D 或 3D）
  *
+ * ⚠️ IMPORTANT (Updated 2025-11-24):
+ * - Mode button (2D模式/3D模式) is a PREFERENCE toggle, NOT a current state indicator
+ * - Button state is independent of current map state
+ * - Must detect mode by checking actual map type (AMap vs Cesium)
+ *
  * @param page - Playwright Page 物件
  * @returns '2D' | '3D' | 'unknown'
  */
 export async function getCurrentMode(page: Page): Promise<'2D' | '3D' | 'unknown'> {
-  console.log('[mode] detecting current mode...');
+  console.log('[mode] detecting current mode by map type...');
 
-  // Layer 1: 3D 專屬控制（視角按鈕）
-  const view1Button = page.getByRole('button', { name: '視角1' });
+  // Layer 1: Check for 3D-specific controls (視角 buttons)
+  // 使用正則匹配繁簡體：視角/视角
+  const view1Button = page.getByRole('button', { name: /[视視]角1/ });
   const hasView1Button = await view1Button.isVisible().catch(() => false);
   if (hasView1Button) {
-    console.log('[mode] detected 3D via 視角1 button');
+    console.log('[mode] ✓ detected 3D mode (Cesium controls visible)');
     return '3D';
   }
 
-  // Layer 2: 模式切換按鈕文字反推當前模式
-  const modeToggleButton = page.getByRole('button', { name: /[23]D模式/ });
-  const toggleText = await modeToggleButton.textContent().catch(() => null);
-  if (toggleText) {
-    const normalizedText = toggleText.trim();
-    console.log(`[mode] mode toggle text: "${normalizedText}"`);
-
-    if (normalizedText.includes('3D')) {
-      console.log('[mode] toggle shows 3D模式 → currently in 2D');
-      return '2D';
-    }
-    if (normalizedText.includes('2D')) {
-      console.log('[mode] toggle shows 2D模式 → currently in 3D');
-      return '3D';
-    }
-  }
-
-  // Layer 3: 後備 - 2D 地圖容器存在
+  // Layer 2: Check for 2D-specific container (AMap)
   const mapContainer = page.locator('.amap-container');
   const hasMapContainer = await mapContainer.isVisible().catch(() => false);
   if (hasMapContainer) {
-    console.log('[mode] fallback: detected amap container → assuming 2D');
+    console.log('[mode] ✓ detected 2D mode (AMap container visible)');
     return '2D';
   }
 
-  console.log('[mode] unable to determine current mode');
+  console.log('[mode] ⚠️ unable to determine current mode (no map detected)');
   return 'unknown';
+}
+
+/**
+ * 設定偏好模式（Button Type 1 - 選擇鴿子畫面的偏好選擇器）
+ *
+ * ⚠️ 此函數操作的是 Button Type 1（偏好選擇器），NOT Button Type 2（地圖功能選單）
+ *
+ * @param page - Playwright Page 物件
+ * @param preferredMode - 偏好模式 '2D' | '3D'
+ */
+export async function setPreferredMode(page: Page, preferredMode: '2D' | '3D'): Promise<void> {
+  console.log(`[preference] Target preference: ${preferredMode}`);
+
+  // Button Type 1: 偏好選擇器
+  // 按鈕名稱 = 當前偏好狀態（"2D" 或 "3D"）
+  const button2D = page.getByRole('button', { name: '2D', exact: true });
+  const button3D = page.getByRole('button', { name: '3D', exact: true });
+
+  // 檢查當前是哪個狀態
+  const is2D = await button2D.isVisible().catch(() => false);
+  const is3D = await button3D.isVisible().catch(() => false);
+
+  if (!is2D && !is3D) {
+    console.log('[preference] ⚠️ Preference button not found, skipping...');
+    return;
+  }
+
+  const currentPreference = is3D ? '3D' : '2D';
+  console.log(`[preference] Current preference: ${currentPreference}`);
+
+  if (currentPreference !== preferredMode) {
+    // 點擊按鈕切換偏好（使用 force: true 因為按鈕可能暫時 disabled）
+    const buttonToClick = is2D ? button2D : button3D;
+    await buttonToClick.click({ force: true });
+    await page.waitForTimeout(500);
+    console.log(`[preference] ✓ Switched preference to ${preferredMode}`);
+  } else {
+    console.log(`[preference] ✓ Already set to ${preferredMode}`);
+  }
 }
 
 /**

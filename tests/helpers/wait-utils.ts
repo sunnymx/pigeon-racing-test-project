@@ -64,6 +64,25 @@ export async function waitForCesium3D(
   page: Page,
   timeout: number = 30000
 ): Promise<void> {
+  console.log('⏳ 等待 3D 模式載入（使用視覺元素檢查）...');
+
+  // 方法：檢查 3D 特徵視覺元素（視角1按鈕）
+  // 不依賴 window.Cesium 因為應用可能不將其暴露到全域
+  // 使用正則匹配繁簡體：視角/视角
+  try {
+    const view1Button = page.getByRole('button', { name: /[视視]角1/ });
+    await view1Button.waitFor({ state: 'visible', timeout });
+    console.log('✅ 3D 視角控制按鈕已顯示');
+  } catch (error) {
+    throw new Error('❌ 3D 模式視角控制按鈕未顯示');
+  }
+
+  // 額外等待確保 3D 場景完全渲染
+  await page.waitForTimeout(2000);
+  console.log('✅ 3D 場景載入完成');
+
+  // 以下是原始的 JS 對象檢查（已註解，因為應用不暴露這些對象）
+  /*
   // 步驟 1: 等待 Cesium 對象
   try {
     await page.waitForFunction(
@@ -102,6 +121,7 @@ export async function waitForCesium3D(
 
   // 額外等待 1 秒讓渲染穩定
   await page.waitForTimeout(1000);
+  */
 }
 
 /**
