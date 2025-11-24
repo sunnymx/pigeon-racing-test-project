@@ -32,10 +32,41 @@ export async function reload2DTrajectory(
       console.log(`🔄 嘗試加載 2D 軌跡 (第 ${attempt + 1}/${maxRetries} 次)...`);
 
       // 步驟1: 確保在鴿子列表頁面
-      // 注意：調用此函數前應該已經通過 enterRace() 進入鴿子列表
-      // 等待 table 出現（鴿子列表的特徵）
-      await page.waitForSelector('table tbody tr', { timeout: 10000 });
-      console.log('  ✓ 已在鴿子列表頁面');
+      // 檢查表格是否可見（更可靠的狀態檢測）
+      const isTableVisible = await page.locator('table tbody tr').isVisible().catch(() => false);
+
+      if (!isTableVisible) {
+        console.log('  ⚠️ 當前不在鴿子列表，嘗試導航返回...');
+
+        // 嘗試找到返回按鈕（支援多種可能的文字）
+        const backButton = page.getByRole('button', { name: /返回|關閉|close|back|×/i }).first();
+
+        if (await backButton.isVisible().catch(() => false)) {
+          await backButton.click();
+          await page.waitForTimeout(2000);
+          console.log('  ✓ 已點擊返回按鈕');
+        } else {
+          // 如果找不到返回按鈕，重新進入賽事
+          console.log('  ⚠️ 未找到返回按鈕，重新進入賽事...');
+          await page.goto('/', { waitUntil: 'networkidle' });
+          await page.waitForTimeout(1000);
+
+          const enterButtons = page.getByRole('button', { name: /\s*(进入|進入)\s*/ });
+          const count = await enterButtons.count();
+
+          if (count > 0) {
+            await enterButtons.nth(0).click(); // 默認進入第一個賽事
+            await page.waitForLoadState('networkidle');
+            console.log('  ✓ 已重新進入賽事');
+          }
+        }
+
+        // 等待表格出現
+        await page.waitForSelector('table tbody tr', { timeout: 10000 });
+        console.log('  ✓ 已返回鴿子列表');
+      } else {
+        console.log('  ✓ 已在鴿子列表頁面');
+      }
 
       // 步驟2: 取消之前的選擇
       const selectedCheckbox = page.locator('input[type="checkbox"]:checked').first();

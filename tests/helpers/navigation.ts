@@ -122,22 +122,42 @@ export async function openTrajectory(page: Page): Promise<void> {
  * @returns '2D' | '3D' | 'unknown'
  */
 export async function getCurrentMode(page: Page): Promise<'2D' | '3D' | 'unknown'> {
-  // 檢查 3D 特徵元素（視角按鈕）
-  const view1Button = page.getByRole('button', { name: '視角1' });
-  const is3DMode = await view1Button.isVisible().catch(() => false);
+  console.log('[mode] detecting current mode...');
 
-  if (is3DMode) {
+  // Layer 1: 3D 專屬控制（視角按鈕）
+  const view1Button = page.getByRole('button', { name: '視角1' });
+  const hasView1Button = await view1Button.isVisible().catch(() => false);
+  if (hasView1Button) {
+    console.log('[mode] detected 3D via 視角1 button');
     return '3D';
   }
 
-  // 檢查 2D 特徵元素（3D模式切換按鈕）
-  const mode3DButton = page.getByRole('button', { name: /3D模式/ });
-  const is2DMode = await mode3DButton.isVisible().catch(() => false);
+  // Layer 2: 模式切換按鈕文字反推當前模式
+  const modeToggleButton = page.getByRole('button', { name: /[23]D模式/ });
+  const toggleText = await modeToggleButton.textContent().catch(() => null);
+  if (toggleText) {
+    const normalizedText = toggleText.trim();
+    console.log(`[mode] mode toggle text: "${normalizedText}"`);
 
-  if (is2DMode) {
+    if (normalizedText.includes('3D')) {
+      console.log('[mode] toggle shows 3D模式 → currently in 2D');
+      return '2D';
+    }
+    if (normalizedText.includes('2D')) {
+      console.log('[mode] toggle shows 2D模式 → currently in 3D');
+      return '3D';
+    }
+  }
+
+  // Layer 3: 後備 - 2D 地圖容器存在
+  const mapContainer = page.locator('.amap-container');
+  const hasMapContainer = await mapContainer.isVisible().catch(() => false);
+  if (hasMapContainer) {
+    console.log('[mode] fallback: detected amap container → assuming 2D');
     return '2D';
   }
 
+  console.log('[mode] unable to determine current mode');
   return 'unknown';
 }
 

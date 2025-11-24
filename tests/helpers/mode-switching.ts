@@ -19,6 +19,7 @@
  */
 
 import { Page, expect } from '@playwright/test';
+import { getCurrentMode } from './navigation';
 import { waitForModeSwitch } from './wait-utils';
 
 /**
@@ -59,10 +60,72 @@ export async function ensureModeByText(
 
   if (needSwitch) {
     console.log(`🔄 需要切換到 ${targetMode} 模式`);
-    await modeButton.click();
+
+    // Store current button text before clicking
+    const beforeText = buttonText.trim();
+
+    // Click with force option to overcome potential overlays
+    await modeButton.click({ force: true });
+    console.log(`  ✓ 已點擊模式切換按鈕`);
+
+    // Wait for button text to change (indicates mode switch started)
+    await page.waitForTimeout(1000);
+
+    // Verify button text changed
+    const afterText = await modeButton.textContent().catch(() => '');
+    if (afterText && afterText.trim() === beforeText) {
+      console.log(`  ⚠️  按鈕文字未改變，嘗試再次點擊`);
+      await page.waitForTimeout(500);
+      await modeButton.click({ force: true });
+    }
+
     await waitForModeSwitch(page, targetMode);
   } else {
-    console.log(`✅ 已在 ${targetMode} 模式，無需切換`);
+    // Button suggests we're already in target mode, but verify this is true
+    console.log(`📍 按鈕顯示已在 ${targetMode} 模式，驗證中...`);
+
+    // Verify by checking for characteristic elements
+    if (targetMode === '3D') {
+      const view1Button = page.getByRole('button', { name: '視角1' });
+      const is3D = await view1Button.isVisible().catch(() => false);
+
+      if (!is3D) {
+        console.log(`⚠️  視角按鈕未顯示，強制切換到 3D 模式`);
+
+        // Store current button text
+        const beforeText = buttonText.trim();
+
+        // Click with force
+        await modeButton.click({ force: true });
+        console.log(`  ✓ 已點擊模式切換按鈕`);
+
+        // Wait and verify button text changed
+        await page.waitForTimeout(1000);
+        const afterText = await modeButton.textContent().catch(() => '');
+        if (afterText && afterText.trim() === beforeText) {
+          console.log(`  ⚠️  按鈕文字未改變，嘗試再次點擊`);
+          await page.waitForTimeout(500);
+          await modeButton.click({ force: true });
+        }
+
+        await waitForModeSwitch(page, targetMode);
+      } else {
+        console.log(`✅ 已在 ${targetMode} 模式（已驗證）`);
+      }
+    } else {
+      // For 2D, check for map container
+      const mapContainer = page.locator('.amap-container');
+      const is2D = await mapContainer.isVisible().catch(() => false);
+
+      if (!is2D) {
+        console.log(`⚠️  2D 地圖容器未顯示，強制切換到 2D 模式`);
+        await modeButton.click({ force: true });
+        await page.waitForTimeout(1000);
+        await waitForModeSwitch(page, targetMode);
+      } else {
+        console.log(`✅ 已在 ${targetMode} 模式（已驗證）`);
+      }
+    }
   }
 }
 
@@ -124,6 +187,9 @@ export async function switchTo3DReliably(page: Page): Promise<void> {
 export async function detectCurrentViewMode(
   page: Page
 ): Promise<'2D-static' | '2D-dynamic' | '3D' | 'unknown'> {
+  // 先用通用的模式檢測取得大類別（2D/3D）
+  const coarseMode = await getCurrentMode(page);
+
   // 檢查 3D 特徵
   const view1Button = page.getByRole('button', { name: '視角1' });
   const is3D = await view1Button.isVisible().catch(() => false);
@@ -140,6 +206,12 @@ export async function detectCurrentViewMode(
     return '2D-static';
   } else if (markerCount > 0 && markerCount < 5) {
     return '2D-dynamic';
+  }
+
+  // 後備：如果已確定在 2D，但未能依標記數判斷子模式，預設回傳 2D-static
+  if (coarseMode === '2D') {
+    console.log('[mode] fallback to 2D-static due to ambiguous marker count');
+    return '2D-static';
   }
 
   return 'unknown';
