@@ -1495,6 +1495,12 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ## 📚 Reference Documents
 
+### 本次更新相關文檔 (2025-11-24 新增)
+- [Phase 1 Actual Findings](./phase-1-actual-findings.md) - TC-04-001 完整修復記錄與實際發現
+- [Plan Review Report](./plan-review-report.md) - 原計劃準確度評估（25%）與改進建議
+- [Plan Update Summary](./plan-update-summary.md) - 本文檔更新摘要與變更清單
+- [Localization Testing Guide](../../docs/guides/localization-testing.md) - ⭐ **新增** 完整的本地化測試指南
+
 ### 專案文檔
 - [Development Roadmap](../development-plan/ROADMAP.md)
 - [Documents Checklist](../development-plan/DOCUMENTS_CHECKLIST.md)
@@ -1510,6 +1516,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - [Testing Strategies](../../docs/guides/testing-strategies.md)
 - [Troubleshooting Guide](../../docs/guides/troubleshooting.md)
 - [Mode Switching Guide](../../docs/guides/mode-switching.md)
+- [Localization Testing](../../docs/guides/localization-testing.md) - ⭐ **新增** 簡繁體字符處理指南
 
 ---
 
