@@ -28,7 +28,8 @@ export interface LoftInfo {
  * @throws 如果 Tab 不存在或切換失敗
  */
 export async function openLoftList(page: Page): Promise<void> {
-  const loftTab = page.getByRole('tab', { name: '鴿舍列表' });
+  // 支援簡繁體字符：鴿/鸽, 舍, 列表
+  const loftTab = page.getByRole('tab', { name: /鴿舍列表|鸽舍列表/ });
 
   await expect(loftTab).toBeVisible({ timeout: 5000 });
   await loftTab.click();
@@ -220,7 +221,8 @@ export async function verifyMultipleTrajectoryRequests(
   });
 
   // 點擊查看軌跡
-  const trajectoryButton = page.getByRole('button', { name: '查看軌跡' });
+  // 支援簡繁體字符：軌/轨, 跡/迹
+  const trajectoryButton = page.getByRole('button', { name: /查看[轨軌][迹跡]/ });
   await expect(trajectoryButton).toBeEnabled({ timeout: 5000 });
   await trajectoryButton.click();
 

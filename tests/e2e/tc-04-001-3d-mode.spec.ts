@@ -171,7 +171,8 @@ test.describe('TC-04-001: 3D 模式基本渲染 @P0', () => {
     await switchTo3DReliably(page);
 
     // 檢查「顯示軌跡點」按鈕
-    const trajectoryPointButton = page.getByRole('button', { name: /軌跡點/ });
+    // 支援簡繁體字符：軌/轨, 跡/迹, 點/点
+    const trajectoryPointButton = page.getByRole('button', { name: /[轨軌][迹跡][點点]/ });
     const buttonExists = await trajectoryPointButton.count();
 
     if (buttonExists > 0) {
