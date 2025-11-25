@@ -80,66 +80,66 @@ export function validateFlightData(data: TrajectoryData): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // 驗證必填欄位
+  // 验证必填栏位
   if (!data.ringNumber) {
-    errors.push('❌ 缺少公環號');
+    errors.push('❌ 缺少公环号');
   }
 
-  // 驗證速度
+  // 验证速度
   if (!validateRange(data.avgSpeed, FLIGHT_DATA_RULES.avgSpeed)) {
     errors.push(
-      `❌ 平均分速超出範圍：${data.avgSpeed} (預期 ${FLIGHT_DATA_RULES.avgSpeed.min}-${FLIGHT_DATA_RULES.avgSpeed.max})`
+      `❌ 平均分速超出范围：${data.avgSpeed} (预期 ${FLIGHT_DATA_RULES.avgSpeed.min}-${FLIGHT_DATA_RULES.avgSpeed.max})`
     );
   }
 
   if (!validateRange(data.maxSpeed, FLIGHT_DATA_RULES.maxSpeed)) {
     errors.push(
-      `❌ 最高分速超出範圍：${data.maxSpeed} (預期 ${FLIGHT_DATA_RULES.maxSpeed.min}-${FLIGHT_DATA_RULES.maxSpeed.max})`
+      `❌ 最高分速超出范围：${data.maxSpeed} (预期 ${FLIGHT_DATA_RULES.maxSpeed.min}-${FLIGHT_DATA_RULES.maxSpeed.max})`
     );
   }
 
-  // 驗證高度
+  // 验证高度
   if (!validateRange(data.avgAltitude, FLIGHT_DATA_RULES.avgAltitude)) {
     warnings.push(
-      `⚠️ 平均高度超出常見範圍：${data.avgAltitude} (常見 ${FLIGHT_DATA_RULES.avgAltitude.typical})`
+      `⚠️ 平均高度超出常见范围：${data.avgAltitude} (常见 ${FLIGHT_DATA_RULES.avgAltitude.typical})`
     );
   }
 
   if (!validateRange(data.maxAltitude, FLIGHT_DATA_RULES.maxAltitude)) {
     warnings.push(
-      `⚠️ 最大高度超出常見範圍：${data.maxAltitude} (常見 ${FLIGHT_DATA_RULES.maxAltitude.typical})`
+      `⚠️ 最大高度超出常见范围：${data.maxAltitude} (常见 ${FLIGHT_DATA_RULES.maxAltitude.typical})`
     );
   }
 
-  // 驗證距離
+  // 验证距离
   if (!validateRange(data.actualDistance, FLIGHT_DATA_RULES.actualDistance)) {
     errors.push(
-      `❌ 實際距離超出範圍：${data.actualDistance} (預期 ${FLIGHT_DATA_RULES.actualDistance.min}-${FLIGHT_DATA_RULES.actualDistance.max})`
+      `❌ 实际距离超出范围：${data.actualDistance} (预期 ${FLIGHT_DATA_RULES.actualDistance.min}-${FLIGHT_DATA_RULES.actualDistance.max})`
     );
   }
 
   if (!validateRange(data.straightDistance, FLIGHT_DATA_RULES.straightDistance)) {
     errors.push(
-      `❌ 直線距離超出範圍：${data.straightDistance} (預期 ${FLIGHT_DATA_RULES.straightDistance.min}-${FLIGHT_DATA_RULES.straightDistance.max})`
+      `❌ 直线距离超出范围：${data.straightDistance} (预期 ${FLIGHT_DATA_RULES.straightDistance.min}-${FLIGHT_DATA_RULES.straightDistance.max})`
     );
   }
 
-  // 驗證關係一致性
+  // 验证关系一致性
   if (data.maxSpeed < data.avgSpeed) {
     errors.push(
-      `❌ 邏輯錯誤：最高分速 (${data.maxSpeed}) < 平均分速 (${data.avgSpeed})`
+      `❌ 逻辑错误：最高分速 (${data.maxSpeed}) < 平均分速 (${data.avgSpeed})`
     );
   }
 
   if (data.maxAltitude < data.avgAltitude) {
     errors.push(
-      `❌ 邏輯錯誤：最大高度 (${data.maxAltitude}) < 平均高度 (${data.avgAltitude})`
+      `❌ 逻辑错误：最大高度 (${data.maxAltitude}) < 平均高度 (${data.avgAltitude})`
     );
   }
 
   if (data.actualDistance < data.straightDistance) {
     warnings.push(
-      `⚠️ 異常：實際距離 (${data.actualDistance}) < 直線距離 (${data.straightDistance})`
+      `⚠️ 异常：实际距离 (${data.actualDistance}) < 直线距离 (${data.straightDistance})`
     );
   }
 
@@ -160,19 +160,19 @@ export function validateFlightData(data: TrajectoryData): ValidationResult {
  * @returns 異常描述（無異常返回 null）
  */
 export function detectAnomaly(data: TrajectoryData): string | null {
-  // 檢測超大距離異常（實際案例：46,168 km）
+  // 检测超大距离异常（实际案例：46,168 km）
   if (data.actualDistance > 10000) {
-    return `🚨 嚴重異常：實際距離 ${data.actualDistance} km（可能是數據錯誤）`;
+    return `🚨 严重异常：实际距离 ${data.actualDistance} km（可能是数据错误）`;
   }
 
-  // 檢測超高速度異常（實際案例：106,529 m/Min）
+  // 检测超高速度异常（实际案例：106,529 m/Min）
   if (data.avgSpeed > 10000) {
-    return `🚨 嚴重異常：平均分速 ${data.avgSpeed} m/Min（可能是單位錯誤）`;
+    return `🚨 严重异常：平均分速 ${data.avgSpeed} m/Min（可能是单位错误）`;
   }
 
-  // 檢測零值異常
+  // 检测零值异常
   if (data.actualDistance === 0 || data.avgSpeed === 0) {
-    return `⚠️ 數據異常：關鍵欄位為零（可能未載入完成）`;
+    return `⚠️ 数据异常：关键栏位为零（可能未载入完成）`;
   }
 
   return null;
@@ -228,11 +228,11 @@ export function validateDistanceRange(distance: number): boolean {
 export function formatValidationReport(result: ValidationResult): string {
   const lines: string[] = [];
 
-  lines.push('=== 數據驗證報告 ===');
-  lines.push(`狀態：${result.isValid ? '✅ 通過' : '❌ 失敗'}`);
+  lines.push('=== 数据验证报告 ===');
+  lines.push(`状态：${result.isValid ? '✅ 通过' : '❌ 失败'}`);
 
   if (result.errors.length > 0) {
-    lines.push('\n【錯誤】');
+    lines.push('\n【错误】');
     result.errors.forEach((error) => lines.push(`  ${error}`));
   }
 
@@ -241,14 +241,14 @@ export function formatValidationReport(result: ValidationResult): string {
     result.warnings.forEach((warning) => lines.push(`  ${warning}`));
   }
 
-  lines.push('\n【數據】');
-  lines.push(`  公環號：${result.data.ringNumber}`);
+  lines.push('\n【数据】');
+  lines.push(`  公环号：${result.data.ringNumber}`);
   lines.push(`  平均分速：${result.data.avgSpeed} m/Min`);
   lines.push(`  最高分速：${result.data.maxSpeed} m/Min`);
   lines.push(`  平均高度：${result.data.avgAltitude} m`);
   lines.push(`  最大高度：${result.data.maxAltitude} m`);
-  lines.push(`  實際距離：${result.data.actualDistance} km`);
-  lines.push(`  直線距離：${result.data.straightDistance} km`);
+  lines.push(`  实际距离：${result.data.actualDistance} km`);
+  lines.push(`  直线距离：${result.data.straightDistance} km`);
 
   return lines.join('\n');
 }

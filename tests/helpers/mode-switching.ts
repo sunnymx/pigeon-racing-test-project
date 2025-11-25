@@ -50,9 +50,11 @@ export async function ensureModeByText(
   console.log(`🔄 ensureModeByText: target mode = ${targetMode}`);
 
   // Find Button Type 2: Map mode switcher button in trajectory view
-  // This button includes the "view_in_ar" icon and shows "2D模式" or "3D模式"
-  // NOT Button Type 1 (preference selector) which shows "2d  2D模式" format
-  const modeButton = page.getByRole('button', { name: /view_in_ar [23]D模式/ });
+  // ⚠️ FIXED (2025-11-25): Button shows different icons based on current mode:
+  //   - In 3D mode: shows "2d 2D模式" (icon: 2d)
+  //   - In 2D mode: shows "view_in_ar 3D模式" (icon: view_in_ar)
+  // Use generic pattern to match both states
+  const modeButton = page.getByRole('button', { name: /[23]D模式/ });
 
   // 確認按鈕存在
   await expect(modeButton).toBeVisible({ timeout: 5000 });

@@ -21,16 +21,16 @@ import { Page, expect, Locator } from '@playwright/test';
  * 軌跡數據接口
  */
 export interface TrajectoryData {
-  ringNumber: string;           // 公環號
-  startTime: string;             // 起點時間
-  endTime: string;               // 終點時間
-  duration: string;              // 持續時間
+  ringNumber: string;           // 公环号
+  startTime: string;             // 起点时间
+  endTime: string;               // 终点时间
+  duration: string;              // 持续时间
   avgSpeed: number;              // 平均分速 (m/Min)
   maxSpeed: number;              // 最高分速 (m/Min)
   avgAltitude: number;           // 平均高度 (m)
   maxAltitude: number;           // 最大高度 (m)
-  actualDistance: number;        // 實際距離 (km)
-  straightDistance: number;      // 直線距離 (km)
+  actualDistance: number;        // 实际距离 (km)
+  straightDistance: number;      // 直线距离 (km)
 }
 
 /**
@@ -172,33 +172,42 @@ export async function verifyPointInfo(page: Page): Promise<TrajectoryPointInfo> 
  * @throws 如果數據不完整
  */
 export async function verifyTrajectoryData(page: Page): Promise<TrajectoryData> {
-  // 提取公環號
-  const ringNumber = await page
-    .locator('text=公環號')
+  // 點擊打開軌跡詳情面板（如果尚未打開）
+  const detailButton = page.locator('button[mattooltip="軌跡詳情"]');
+  if (await detailButton.isVisible().catch(() => false)) {
+    await detailButton.click();
+    await page.waitForTimeout(1000);
+    console.log('📊 已打開軌跡詳情面板');
+  }
+
+  // 提取公环号（使用 .detail-text 選擇器）
+  const ringNumberRow = await page
+    .locator('.detail-text:has-text("公环号")')
     .locator('..')
     .textContent()
     .catch(() => '');
+  const ringNumber = ringNumberRow;
 
-  // 提取時間數據
-  const startTime = await extractFieldValue(page, '起點時間');
-  const endTime = await extractFieldValue(page, '終點時間');
-  const duration = await extractFieldValue(page, '持續時間');
+  // 提取时间数据
+  const startTime = await extractFieldValue(page, '起点时间');
+  const endTime = await extractFieldValue(page, '终点时间');
+  const duration = await extractFieldValue(page, '持续时间');
 
-  // 提取速度數據
+  // 提取速度数据
   const avgSpeedText = await extractFieldValue(page, '平均分速');
   const maxSpeedText = await extractFieldValue(page, '最高分速');
 
-  // 提取高度數據
+  // 提取高度数据
   const avgAltitudeText = await extractFieldValue(page, '平均高度');
   const maxAltitudeText = await extractFieldValue(page, '最大高度');
 
-  // 提取距離數據
-  const actualDistanceText = await extractFieldValue(page, '實際距離');
-  const straightDistanceText = await extractFieldValue(page, '直線距離');
+  // 提取距离数据
+  const actualDistanceText = await extractFieldValue(page, '实际距离');
+  const straightDistanceText = await extractFieldValue(page, '直线距离');
 
   // 轉換為數字
   const trajectoryData: TrajectoryData = {
-    ringNumber: ringNumber?.match(/\d{4}-\d{2}-\d{7}/)?.[0] || '',
+    ringNumber: ringNumber?.match(/\d{2}-\d{7}/)?.[0] || '',
     startTime,
     endTime,
     duration,
@@ -254,13 +263,49 @@ export async function verifyTrajectoryRendered(
 
 /**
  * 輔助函數：提取欄位值
+ *
+ * DOM 結構：標籤和值是相鄰的兄弟元素
+ * <div>                              <- 父容器
+ *   <div>平均分速 (m/Min)</div>      <- 標籤（index 0）
+ *   <div>1320</div>                  <- 值（index 1）
+ *   <div>最高分速 (m/Min)</div>      <- 標籤（index 2）
+ *   <div>1800</div>                  <- 值（index 3）
+ * </div>
+ *
+ * 策略：找到標籤的父容器，遍歷子元素找到標籤後取下一個
  */
 async function extractFieldValue(page: Page, fieldName: string): Promise<string> {
   try {
-    const element = page.locator(`text=${fieldName}`).locator('..');
-    const text = await element.textContent();
-    const value = text?.replace(fieldName, '').trim() || '';
-    return value;
+    // 使用 getByText 找到精確的標籤元素
+    const labelElements = page.getByText(fieldName);
+    const count = await labelElements.count();
+
+    for (let i = 0; i < count; i++) {
+      const label = labelElements.nth(i);
+      const labelText = await label.textContent();
+
+      // 確保是精確匹配（標籤以欄位名開頭，且文字較短 - 排除父容器）
+      if (labelText && labelText.trim().startsWith(fieldName) && labelText.length < 50) {
+        // 獲取父元素
+        const parent = label.locator('..');
+        const siblings = parent.locator('> *');
+        const siblingCount = await siblings.count();
+
+        // 找到標籤的索引，然後取下一個元素的值
+        for (let j = 0; j < siblingCount - 1; j++) {
+          const siblingText = await siblings.nth(j).textContent();
+          if (siblingText?.trim().startsWith(fieldName)) {
+            // 找到標籤了，取下一個元素
+            const valueText = await siblings.nth(j + 1).textContent();
+            if (valueText && !valueText.includes(fieldName)) {
+              return valueText.trim();
+            }
+          }
+        }
+      }
+    }
+
+    return '';
   } catch {
     return '';
   }
