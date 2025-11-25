@@ -178,8 +178,8 @@ export async function ensure2DStaticMode(page: Page): Promise<boolean> {
   }
 
   // 驗證靜態模式特徵：軌跡點數量 >= 15
-  // 根據 KNOWN_ISSUES_SOLUTIONS.md 第 250-256 行
-  const markerCount = await page.locator('[title*="2025-"]').count();
+  // 選擇器：紅色軌跡標記點（.amap-marker 內含 ff0000 圖片）
+  const markerCount = await page.locator('.amap-marker:has(img[src*="ff0000"])').count();
 
   if (markerCount >= 15) {
     console.log(`✅ 已切換到 2D 靜態模式，軌跡點數: ${markerCount}`);

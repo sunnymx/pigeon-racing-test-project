@@ -205,8 +205,8 @@ export async function detectCurrentViewMode(
     return '3D';
   }
 
-  // 檢查 2D 模式下的標記數量
-  const markers = page.locator('[title*="2025-"]');
+  // 檢查 2D 模式下的標記數量（紅色軌跡標記點）
+  const markers = page.locator('.amap-marker:has(img[src*="ff0000"])');
   const markerCount = await markers.count().catch(() => 0);
 
   if (markerCount >= 15) {
@@ -254,8 +254,8 @@ export async function switchSubMode2D(
     return;
   }
 
-  // 點擊 timeline 按鈕切換
-  const timelineButton = page.locator('button:has(img[alt="timeline"])');
+  // 點擊 timeline 按鈕切換（使用 Material Icon 文字匹配，不是 img 標籤）
+  const timelineButton = page.getByRole('button').filter({ hasText: 'timeline' });
   await timelineButton.click();
   await page.waitForTimeout(2000);
 

@@ -48,14 +48,14 @@ export interface TrajectoryPointInfo {
 /**
  * 獲取所有軌跡標記點
  *
- * 策略：尋找 title 屬性包含年份格式的元素
- * 格式：title="2025-26-NNNNNNN" 或類似
+ * 策略：尋找紅色軌跡標記點（.amap-marker 內含 ff0000 圖片）
+ * DOM 結構：<div class="amap-marker"><div class="amap-icon"><img src="./assets/pings/ff0000.png"></div></div>
  *
  * @param page - Playwright Page 物件
  * @returns 軌跡標記點的 Locator 陣列
  */
 export async function getTrajectoryPoints(page: Page): Promise<Locator[]> {
-  const markers = page.locator('[title*="2025-"]');
+  const markers = page.locator('.amap-marker:has(img[src*="ff0000"])');
   const count = await markers.count();
 
   console.log(`📍 找到 ${count} 個軌跡標記點`);
@@ -74,8 +74,22 @@ export async function getTrajectoryPoints(page: Page): Promise<Locator[]> {
  * @returns 標記點數量
  */
 export async function getTrajectoryPointsCount(page: Page): Promise<number> {
-  const markers = page.locator('[title*="2025-"]');
+  const markers = page.locator('.amap-marker:has(img[src*="ff0000"])');
   return await markers.count();
+}
+
+/**
+ * 從軌跡詳情面板獲取航點數量
+ *
+ * 用於驗證軌跡數據完整性
+ * DOM 結構：<div class="mat-ripple row ng-star-inserted">...</div>
+ *
+ * @param page - Playwright Page 物件
+ * @returns 航點數量
+ */
+export async function getWaypointCountFromDetails(page: Page): Promise<number> {
+  const rows = page.locator('.mat-ripple.row.ng-star-inserted');
+  return await rows.count();
 }
 
 /**

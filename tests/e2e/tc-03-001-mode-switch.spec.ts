@@ -52,7 +52,8 @@ test.describe('TC-03-001: 2D 靜態/動態模式切換 @P0', () => {
 
     // ===== 步驟 5: 切換到動態模式 =====
     console.log('📍 步驟 2: 切換到動態模式');
-    const timelineButton = page.locator('button:has(img[alt="timeline"])');
+    // 使用 Material Icon 文字匹配（不是 img 標籤）
+    const timelineButton = page.getByRole('button').filter({ hasText: 'timeline' });
     await timelineButton.click();
     await page.waitForTimeout(2000);
 
@@ -72,7 +73,8 @@ test.describe('TC-03-001: 2D 靜態/動態模式切換 @P0', () => {
 
     // ===== 步驟 6: 切換回靜態模式 =====
     console.log('📍 步驟 3: 切換回靜態模式');
-    await timelineButton.click();
+    // 再次點擊 timeline 按鈕切換回靜態
+    await page.getByRole('button').filter({ hasText: 'timeline' }).click();
     await page.waitForTimeout(2000);
 
     // 驗證恢復靜態模式
@@ -151,9 +153,9 @@ test.describe('TC-03-001: 2D 靜態/動態模式切換 @P0', () => {
     console.log(`  模式偵測（初始）：${mode}`);
     expect(['2D-static', '2D-dynamic']).toContain(mode);
 
-    // 切換模式
-    const timelineButton = page.locator('button:has(img[alt="timeline"])');
-    await timelineButton.click();
+    // 切換模式（使用 Material Icon 文字匹配）
+    const timelineBtn = page.getByRole('button').filter({ hasText: 'timeline' });
+    await timelineBtn.click();
     await page.waitForTimeout(2000);
 
     // 再次偵測

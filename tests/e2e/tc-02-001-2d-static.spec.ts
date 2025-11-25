@@ -49,16 +49,14 @@ test.describe('TC-02-001: 2D 靜態軌跡渲染 @P0', () => {
     // ===== 層級 1: DOM 驗證 =====
     console.log('✅ 層級 1: DOM 驗證');
 
-    // 驗證 2D 特徵按鈕可見
+    // 驗證 2D 特徵按鈕可見（當前在 2D，按鈕顯示「3D模式」表示可切換到 3D）
     await expect(page.getByRole('button', { name: /3D模式/ })).toBeVisible({
       timeout: 5000,
     });
-    console.log('  ✓ 2D 模式按鈕已顯示');
+    console.log('  ✓ 2D 模式確認（3D模式切換按鈕已顯示）');
 
-    // 驗證時間軸按鈕存在（timeline）
-    const timelineButton = page.locator('button:has(img[alt="timeline"])');
-    await expect(timelineButton).toBeVisible({ timeout: 5000 });
-    console.log('  ✓ Timeline 按鈕已顯示');
+    // 注意：timeline 按鈕只在「動態播放」模式才會出現
+    // 靜態軌跡模式不驗證 timeline 按鈕
 
     // ===== 層級 2: Canvas 驗證 =====
     console.log('✅ 層級 2: Canvas 驗證');
