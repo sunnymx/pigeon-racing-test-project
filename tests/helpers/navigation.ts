@@ -20,7 +20,8 @@ import { Page, expect } from '@playwright/test';
  */
 export async function enterRace(page: Page, raceIndex: number = 0): Promise<void> {
   // 導航到首頁
-  await page.goto('/', { waitUntil: 'networkidle' });
+  // ⚠️ 使用 domcontentloaded 替代 networkidle，避免因地圖瓦片持續載入導致超時
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   // 等待賽事卡片載入
   await page.waitForSelector('mat-card', { timeout: 10000 });

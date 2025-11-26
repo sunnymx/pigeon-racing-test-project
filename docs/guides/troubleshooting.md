@@ -3,7 +3,7 @@
 **快速參考**: [CLAUDE.md](../../CLAUDE.md#critical-gotchas)
 **詳細文檔**: [Known Issues Solutions](../test-plan/KNOWN_ISSUES_SOLUTIONS.md)
 
-本指南提供 MVP 測試發現的 4 個關鍵問題的快速排解方法。
+本指南提供 MVP 測試發現的 5 個關鍵問題的快速排解方法。
 
 ---
 
@@ -104,6 +104,35 @@ await page.waitForSelector('.amap-icon > img', { timeout: 5000 });
 ```
 
 📖 完整策略：[Wait Strategies](testing-strategies.md#wait-strategies)
+
+---
+
+## 問題 #5: page.goto networkidle 超時 (HIGH)
+
+### 症狀
+- `TimeoutError: page.goto: Timeout 30000ms exceeded`
+- 錯誤顯示 `waiting until "networkidle"`
+- 頁面實際上已載入完成，但測試仍超時
+
+### 根本原因
+網站首頁右側地圖持續載入瓦片，導致 `networkidle` 永遠無法達到。
+
+### 快速解決
+使用 `domcontentloaded` 替代 `networkidle`：
+```typescript
+// ❌ 錯誤：可能因地圖瓦片持續載入導致超時
+await page.goto('/', { waitUntil: 'networkidle' });
+
+// ✅ 正確：使用 domcontentloaded + 元素等待
+await page.goto('/', { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('mat-card', { timeout: 10000 });
+```
+
+### 影響檔案
+- `tests/helpers/navigation.ts` - `enterRace()` 函數
+- `tests/helpers/trajectory-reload.ts` - 重載軌跡邏輯
+
+📖 **解決方案已實施**: 2025-11-26
 
 ---
 

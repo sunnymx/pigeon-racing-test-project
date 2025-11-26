@@ -48,15 +48,16 @@ export async function reload2DTrajectory(
         } else {
           // 如果找不到返回按鈕，重新進入賽事
           console.log('  ⚠️ 未找到返回按鈕，重新進入賽事...');
-          await page.goto('/', { waitUntil: 'networkidle' });
-          await page.waitForTimeout(1000);
+          // ⚠️ 使用 domcontentloaded 替代 networkidle，避免因地圖瓦片持續載入導致超時
+          await page.goto('/', { waitUntil: 'domcontentloaded' });
+          await page.waitForSelector('mat-card', { timeout: 10000 });
 
           const enterButtons = page.getByRole('button', { name: /\s*(进入|進入)\s*/ });
           const count = await enterButtons.count();
 
           if (count > 0) {
             await enterButtons.nth(0).click(); // 默認進入第一個賽事
-            await page.waitForLoadState('networkidle');
+            await page.waitForSelector('table tbody tr', { timeout: 15000 });
             console.log('  ✓ 已重新進入賽事');
           }
         }

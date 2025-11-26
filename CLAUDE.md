@@ -155,6 +155,7 @@ Automated testing project for a pigeon racing GPS tracking system (https://skyra
 2. **Static/Dynamic mode confusion** → Count marker points (≥15 static vs <5 dynamic)
 3. **Trajectory point click unresponsive** → Use `.amap-icon > img` selector with `force: true`
 4. **Data loading timing** → Wait 2-3 seconds after switches
+5. **page.goto networkidle timeout** → Use `domcontentloaded` + element wait instead
 
 📖 **Solutions**: [Troubleshooting Guide](docs/guides/troubleshooting.md)
 
