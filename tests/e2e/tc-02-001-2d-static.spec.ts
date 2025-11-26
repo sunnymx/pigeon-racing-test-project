@@ -18,7 +18,7 @@
 import { test, expect } from '@playwright/test';
 import { enterRace, selectPigeon, openTrajectory } from '../helpers/navigation';
 import { reload2DTrajectory, ensure2DStaticMode } from '../helpers/trajectory-reload';
-import { waitForMapTiles, waitForTrajectoryData } from '../helpers/wait-utils';
+import { waitForTrajectoryData } from '../helpers/wait-utils';
 import {
   getTrajectoryPointsCount,
   verifyTrajectoryRendered,
@@ -61,19 +61,25 @@ test.describe('TC-02-001: 2D 靜態軌跡渲染 @P0', () => {
     // ===== 層級 2: Canvas 驗證 =====
     console.log('✅ 層級 2: Canvas 驗證');
 
-    // 等待地圖瓦片載入
-    const tileCount = await waitForMapTiles(page, 50, 15000);
-    expect(tileCount).toBeGreaterThan(50);
-    console.log(`  ✓ 地圖瓦片已載入：${tileCount} 個`);
+    // 驗證 Canvas 圖層存在（替代瓦片計數，AMap v2.0+ 使用 Canvas 渲染）
+    const canvas = page.locator('canvas.amap-layer').first();
+    await expect(canvas).toBeVisible();
+    console.log('  ✓ Canvas 圖層已載入');
 
     // 驗證軌跡點數量（靜態模式應該 >= 15）
     const pointsCount = await getTrajectoryPointsCount(page);
     expect(pointsCount).toBeGreaterThanOrEqual(15);
     console.log(`  ✓ 軌跡標記點數量：${pointsCount} 個（靜態模式）`);
 
+    // 截圖驗證軌跡線可見（合併原 :108 測試功能）
+    await canvas.screenshot({
+      path: 'screenshots/tc-02-001-trajectory-line.png',
+    });
+    console.log('  ✓ 軌跡線截圖已保存');
+
     // 截圖驗證軌跡渲染
     await verifyTrajectoryRendered(page, '2D', 'tc-02-001-2d-static');
-    console.log('  ✓ 2D 軌跡渲染成功（截圖已保存）');
+    console.log('  ✓ 2D 軌跡渲染成功');
 
     // ===== 層級 3: Network 驗證 =====
     console.log('✅ 層級 3: Network 驗證');
@@ -105,21 +111,7 @@ test.describe('TC-02-001: 2D 靜態軌跡渲染 @P0', () => {
     console.log('✅ 測試通過：2D 靜態軌跡完整渲染');
   });
 
-  test('應該顯示完整的軌跡線', async ({ page }) => {
-    // 進入賽事並加載 2D 軌跡
-    await enterRace(page, 0);
-    await reload2DTrajectory(page, 0, 3);
-
-    // 截圖驗證紅色軌跡線可見
-    const canvas = page.locator('canvas.amap-layer').first();
-    await expect(canvas).toBeVisible();
-
-    await canvas.screenshot({
-      path: 'screenshots/trajectory-line-validation.png',
-    });
-
-    console.log('✅ 軌跡線截圖已保存');
-  });
+  // 注意：「應該顯示完整的軌跡線」測試已合併到「應該正確渲染 2D 靜態軌跡」測試中
 
   test('應該正確顯示起點和終點標記', async ({ page }) => {
     // 進入賽事並加載 2D 軌跡

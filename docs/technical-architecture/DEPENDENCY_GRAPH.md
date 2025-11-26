@@ -146,15 +146,16 @@ async function waitForAmapTiles(page: Page, minTiles: number = 50): Promise<void
   await page.waitForSelector('.amap-layer img', { state: 'visible' });
 
   // 方法2: 確保足夠的瓦片已載入
-  await page.waitForFunction((min) => {
-    const tiles = document.querySelectorAll('.amap-container img');
-    return tiles.length >= min;
-  }, minTiles);
-
-  // 方法3: 等待瓦片完全載入（檢查 complete 狀態）
+  // ⚠️ 已棄用: .amap-container img (AMap v2.0+ 改用 Canvas 渲染)
   await page.waitForFunction(() => {
-    const tiles = document.querySelectorAll('.amap-container img');
-    return Array.from(tiles).every(img => img.complete);
+    const canvasLayers = document.querySelectorAll('canvas.amap-layer');
+    return canvasLayers.length > 0;
+  });
+
+  // 方法3: 等待 Canvas 完全初始化
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('canvas.amap-layer');
+    return canvas && canvas.width > 0 && canvas.height > 0;
   });
 }
 ```
@@ -554,10 +555,11 @@ async function waitFor2DMapRender(page: Page): Promise<void> {
   await page.waitForSelector('.amap-container', { state: 'visible' });
 
   // 步驟3: 等待瓦片載入
-  await page.waitForFunction((minTiles) => {
-    const tiles = document.querySelectorAll('.amap-container img');
-    return tiles.length >= minTiles;
-  }, 50);
+  // ⚠️ 已棄用: .amap-container img (AMap v2.0+ 改用 Canvas 渲染)
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('canvas.amap-layer');
+    return canvas && canvas.width > 0 && canvas.height > 0;
+  });
 
   // 步驟4: 額外等待確保穩定
   await page.waitForTimeout(2000);

@@ -125,19 +125,20 @@ async function reload2DTrajectory(
         await page.waitForTimeout(2000);
       }
 
-      // 步骤7: 验证地图瓦片加载（静态模式特征）
-      const tileCount = await page.locator('.amap-container img, .amap-layer img').count();
-
-      // 步骤8: 验证轨迹线存在（通过 Canvas 检查）
+      // 步骤7: 验证 2D 地图加载
+      // ⚠️ 重要更新 (2025-11-26)：
+      // .amap-container img 选择器已失效，高德地图改用 Canvas 渲染
       const canvas = await page.locator('canvas.amap-layer').count();
+      const mapVisible = await page.locator('.amap-container').isVisible().catch(() => false);
+      const timelineVisible = await page.getByRole('button').filter({ hasText: 'timeline' }).isVisible().catch(() => false);
 
-      if (tileCount > 50 && canvas > 0) {
+      if ((canvas > 0 || mapVisible) && timelineVisible) {
         console.log(`✅ 2D 轨迹加载成功！`);
-        console.log(`   - 地图瓦片数: ${tileCount}`);
         console.log(`   - Canvas 图层: ${canvas}`);
+        console.log(`   - 地图容器可见: ${mapVisible}`);
         return true;
       } else {
-        console.warn(`⚠️ 轨迹未完全加载 (瓦片: ${tileCount}, Canvas: ${canvas})，准备重试...`);
+        console.warn(`⚠️ 轨迹未完全加载 (Canvas: ${canvas}, 容器: ${mapVisible})，准备重试...`);
       }
 
     } catch (error) {
@@ -174,14 +175,17 @@ async function ensure2DStaticMode(page: Page): Promise<boolean> {
     }
   }
 
-  // 验证静态模式特征：轨迹点数量 >= 3
-  const markerCount = await page.locator('[title*="2025-"]').count();
+  // 验证静态模式特征：轨迹点数量 >= 15
+  // ⚠️ 重要更新 (2025-11-26)：
+  // 选择器已更新为 .amap-icon > img（由 codegen 确认）
+  // 旧选择器 [title*="2025-"] 已失效
+  const markerCount = await page.locator('.amap-icon > img').count();
 
-  if (markerCount >= 3) {
+  if (markerCount >= 15) {
     console.log(`✅ 已切换到 2D 静态模式，轨迹点数: ${markerCount}`);
     return true;
   } else {
-    console.warn(`⚠️ 轨迹点不足 (${markerCount})，可能仍在动态模式`);
+    console.warn(`⚠️ 轨迹点不足 (${markerCount})，可能仍在动态模式或加载未完成`);
     return false;
   }
 }
@@ -239,7 +243,7 @@ async function waitFor2DDataLoaded(page: Page): Promise<void> {
 
 - ✅ **使用重新选择流程** (返回列表 → 取消选择 → 重新选择 → 查看轨迹)
 - ✅ **等待数据加载完成** (networkidle + 3秒缓冲)
-- ✅ **验证地图瓦片加载** (>50 个 img 元素)
+- ✅ **验证 Canvas 图层 + 轨迹标记** (`.amap-icon > img` 数量 > 0)
 - ✅ **验证 Canvas 图层存在** (轨迹线渲染层)
 - ✅ **区分 2D 静态和动态模式** (通过轨迹点数量判断)
 - ✅ **失败时自动重试** (最多 3 次)
@@ -249,7 +253,7 @@ async function waitFor2DDataLoaded(page: Page): Promise<void> {
 
 | 特征 | 2D 静态模式 | 2D 动态模式 |
 |-----|------------|------------|
-| **轨迹点数量** | ≥ 3 个 | < 3 个（通常只有当前位置） |
+| **轨迹点数量** | ≥ 15 个 | < 5 个（通常只有当前位置） |
 | **轨迹线** | 完整红色轨迹线 | 部分轨迹线（已飞过路径） |
 | **播放控制** | 无播放按钮或显示"播放" | 显示"暂停"按钮（播放中） |
 | **用途** | 查看完整飞行路径 | 观看飞行动画回放 |
@@ -268,9 +272,10 @@ test('TC-#1: 验证 2D 轨迹重新加载', async ({ page }) => {
   // 验证: 轨迹加载成功
   expect(success).toBe(true);
 
-  // 验证: 地图瓦片已加载
-  const tileCount = await page.locator('.amap-container img').count();
-  expect(tileCount).toBeGreaterThan(50);
+  // 验证: 轨迹标记点已加载
+  // ⚠️ 重要：.amap-container img 已失效，改用 .amap-icon > img
+  const markerCount = await page.locator('.amap-icon > img').count();
+  expect(markerCount).toBeGreaterThan(0);
 
   // 验证: Canvas 图层存在
   const canvasCount = await page.locator('canvas.amap-layer').count();
@@ -289,8 +294,9 @@ test('TC-#1-02: 区分 2D 静态和动态模式', async ({ page }) => {
   expect(isStatic).toBe(true);
 
   // 验证静态模式特征
-  const markerCount = await page.locator('[title*="2025-"]').count();
-  expect(markerCount).toBeGreaterThanOrEqual(3);
+  // ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
+  const markerCount = await page.locator('.amap-icon > img').count();
+  expect(markerCount).toBeGreaterThanOrEqual(15);
 
   // 可选: 切换到动态模式并验证
   const timelineButton = page.locator('button:has(img[alt="timeline"])');
@@ -299,7 +305,7 @@ test('TC-#1-02: 区分 2D 静态和动态模式', async ({ page }) => {
     await page.waitForTimeout(1000);
 
     // 验证动态模式特征（轨迹点减少）
-    const dynamicMarkerCount = await page.locator('[title*="2025-"]').count();
+    const dynamicMarkerCount = await page.locator('.amap-icon > img').count();
     expect(dynamicMarkerCount).toBeLessThan(markerCount);
   }
 });
@@ -341,9 +347,10 @@ v0.1.0 (2025-11-17)
 
 **静态模式特征**:
 ```typescript
-// 特征1: 轨迹标记点数量多
-const markerCount = await page.locator('[title*="2025-26-"]').count();
-// 静态模式: markerCount >= 3
+// 特征1: 轨迹标记点数量多（≥ 15）
+// ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
+const markerCount = await page.locator('.amap-icon > img').count();
+// 静态模式: markerCount >= 15
 
 // 特征2: 完整红色轨迹线可见
 // 视觉特征，需要截图验证
@@ -354,9 +361,10 @@ const isPaused = await page.locator('button:has-text("pause")').isVisible();
 
 **动态模式特征**:
 ```typescript
-// 特征1: 轨迹标记点稀少
-const markerCount = await page.locator('[title*="2025-26-"]').count();
-// 动态模式: markerCount < 3
+// 特征1: 轨迹标记点稀少（< 5）
+// ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
+const markerCount = await page.locator('.amap-icon > img').count();
+// 动态模式: markerCount < 5
 
 // 特征2: 播放控制可见
 const playControl = await page.locator('button:has-text("play_arrow")').isVisible();
@@ -370,9 +378,10 @@ const playControl = await page.locator('button:has-text("play_arrow")').isVisibl
 ```typescript
 async function ensureStaticMode(page: Page): Promise<boolean> {
   // 检查轨迹标记数量
-  let markerCount = await page.locator('[title*="2025-26-"]').count();
+  // ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
+  let markerCount = await page.locator('.amap-icon > img').count();
 
-  if (markerCount < 3) {
+  if (markerCount < 15) {
     console.log('⚠️ 当前为动态模式，切换到静态...');
 
     // 点击timeline按钮切换模式
@@ -380,11 +389,11 @@ async function ensureStaticMode(page: Page): Promise<boolean> {
     await page.waitForTimeout(1000);
 
     // 重新检查
-    markerCount = await page.locator('[title*="2025-26-"]').count();
+    markerCount = await page.locator('.amap-icon > img').count();
   }
 
   // 验证静态模式激活
-  if (markerCount >= 3) {
+  if (markerCount >= 15) {
     console.log(`✅ 静态模式激活，轨迹标记数: ${markerCount}`);
     return true;
   }
@@ -398,9 +407,10 @@ async function ensureStaticMode(page: Page): Promise<boolean> {
 ```typescript
 async function ensureDynamicMode(page: Page): Promise<boolean> {
   // 检查轨迹标记数量
-  let markerCount = await page.locator('[title*="2025-26-"]').count();
+  // ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
+  let markerCount = await page.locator('.amap-icon > img').count();
 
-  if (markerCount >= 3) {
+  if (markerCount >= 15) {
     console.log('⚠️ 当前为静态模式，切换到动态...');
 
     // 点击timeline按钮切换模式
@@ -408,7 +418,7 @@ async function ensureDynamicMode(page: Page): Promise<boolean> {
     await page.waitForTimeout(1000);
 
     // 重新检查
-    markerCount = await page.locator('[title*="2025-26-"]').count();
+    markerCount = await page.locator('.amap-icon > img').count();
   }
 
   // 验证动态模式激活
@@ -416,7 +426,7 @@ async function ensureDynamicMode(page: Page): Promise<boolean> {
     .filter({ hasText: 'play_arrow' })
     .isVisible();
 
-  if (markerCount < 3 && playButton) {
+  if (markerCount < 5 && playButton) {
     console.log(`✅ 动态模式激活，播放控制可见`);
     return true;
   }
@@ -481,22 +491,25 @@ v0.1.0 (2025-11-17)
 - 坐标点击无法准确命中动态生成的标记元素
 - 需要通过accessibility snapshot找到标记元素的ref
 
-**DOM结构**:
+**DOM结构** (2025-11-26 更新):
 ```html
 <div class="amap-container">
   <div class="amap-overlays">
-    <generic title="2025-26-0053539" ref="e5233">
-      <!-- 轨迹标记内容 -->
-    </generic>
+    <!-- ⚠️ 高德地图 v2.0+ 的标记点 DOM 结构 -->
+    <div class="amap-marker">
+      <div class="amap-icon">
+        <img src="...">  <!-- ← 使用 .amap-icon > img 选择器 -->
+      </div>
+    </div>
   </div>
 </div>
 ```
 
 ### 解决方案
 
-#### 方法1: 使用Title选择器（推荐）
+#### 方法1: 使用 DOM 结构选择器（推荐）
 
-**原理**: 轨迹标记有唯一的title属性包含环号
+**原理**: 轨迹标记使用 `.amap-icon > img` 结构（由 codegen 确认）
 
 **实现代码**:
 ```typescript
@@ -505,10 +518,11 @@ async function clickTrajectoryPoint(
   index?: number
 ): Promise<boolean> {
   // 等待轨迹标记出现
-  await page.waitForSelector('[title*="2025-26-"]', { timeout: 5000 });
+  // ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
+  await page.waitForSelector('.amap-icon > img', { timeout: 5000 });
 
   // 获取所有轨迹标记
-  const markers = await page.locator('[title*="2025-26-"]').all();
+  const markers = await page.locator('.amap-icon > img').all();
 
   if (markers.length === 0) {
     throw new Error('未找到轨迹标记点');
@@ -521,11 +535,11 @@ async function clickTrajectoryPoint(
 
   console.log(`点击轨迹点 ${targetIndex}/${markers.length - 1}`);
 
-  // 点击指定标记
-  await markers[targetIndex].click();
+  // 点击指定标记（使用 force: true 避免 canvas 遮挡）
+  await markers[targetIndex].click({ force: true });
 
   // 等待信息窗格出现
-  await page.waitForSelector('heading:has-text("2025-26-")', { timeout: 3000 });
+  await page.waitForSelector('heading:has-text("2025-")', { timeout: 3000 });
 
   return true;
 }
@@ -568,19 +582,19 @@ async function clickTrajectoryPointBySnapshot(page: Page): Promise<void> {
 }
 ```
 
-#### 方法3: getByTitle 方法
+#### 方法3: 直接 DOM 选择器（简化版）
 
-**原理**: 使用Playwright的getByTitle选择器
+**原理**: 直接使用 CSS 选择器定位标记点
 
 **实现代码**:
 ```typescript
-async function clickTrajectoryPointByTitle(page: Page): Promise<void> {
-  // 查找包含"2025-26-"的元素
-  const marker = page.getByTitle(/2025-26-/).nth(2);
+async function clickTrajectoryPointSimple(page: Page): Promise<void> {
+  // ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
+  const marker = page.locator('.amap-icon > img').nth(2);
 
-  await marker.click();
+  await marker.click({ force: true });
 
-  await page.waitForSelector('heading:has-text("2025-26-")', { timeout: 3000 });
+  await page.waitForSelector('heading:has-text("2025-")', { timeout: 3000 });
 }
 ```
 
@@ -606,11 +620,12 @@ await page.evaluate(() => {
 
 ### 预防措施清单
 
-- ✅ **使用title属性选择器**
+- ✅ **使用 .amap-icon > img 选择器**（由 codegen 确认）
 - ✅ **通过all()获取所有标记后选择**
 - ✅ **不使用固定坐标点击**
 - ✅ **等待标记元素出现后再点击**
 - ✅ **验证信息窗格显示**
+- ✅ **使用 force: true 避免 canvas 遮挡**
 
 ### 测试用例
 
@@ -619,11 +634,12 @@ test('TC-#3: 轨迹点点击测试', async ({ page }) => {
   await setupStaticMode(page);
 
   // 使用解决方案点击轨迹点
+  // ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
   const success = await clickTrajectoryPoint(page, 2);
 
   // 验证信息窗格显示
   expect(success).toBe(true);
-  await expect(page.locator('heading:has-text("2025-26-")')).toBeVisible();
+  await expect(page.locator('heading:has-text("2025-")')).toBeVisible();
   await expect(page.locator('text=時間：')).toBeVisible();
   await expect(page.locator('text=速度：')).toBeVisible();
 });
@@ -729,9 +745,10 @@ async function retryOperation<T>(
 }
 
 // 使用示例
+// ⚠️ 选择器更新 (2025-11-26): 使用 .amap-icon > img
 await retryOperation(async () => {
-  await page.click('[title*="2025-26-"]');
-  await page.waitForSelector('heading:has-text("2025-26-")');
+  await page.click('.amap-icon > img', { force: true });
+  await page.waitForSelector('heading:has-text("2025-")');
 }, 3, 1000);
 ```
 
@@ -840,7 +857,8 @@ async function safeTrajectoryOperation(page: Page): Promise<void> {
   await clickTrajectoryPoint(page); // 使用问题#3的解决方案
 
   // 5. 验证结果
-  await page.waitForSelector('heading:has-text("2025-26-")');
+  // ⚠️ 选择器更新 (2025-11-26)
+  await page.waitForSelector('heading:has-text("2025-")');
 }
 ```
 
@@ -889,6 +907,26 @@ try {
 
 ---
 
-**文档版本**: v1.0.0
-**最后更新**: 2025-11-17
+**文档版本**: v1.1.0
+**最后更新**: 2025-11-26
 **验证状态**: ✅ 所有解决方案已验证有效
+
+---
+
+## ⚠️ 选择器更新说明 (2025-11-26)
+
+| 旧选择器 | 状态 | 新选择器 | 说明 |
+|---------|------|---------|------|
+| `[title*="2025-"]` | ❌ 失效 | `.amap-icon > img` | codegen 确认 |
+| `[title*="2025-26-"]` | ❌ 失效 | `.amap-icon > img` | 同上 |
+| `.amap-container img` | ❌ 失效 | `canvas.amap-layer` | AMap v2.0+ 改用 Canvas |
+
+**DOM 结构变更**:
+```html
+<!-- 高德地图 v2.0+ 的标记点 DOM 结构 -->
+<div class="amap-marker">
+  <div class="amap-icon">
+    <img src="...">  ← 使用 .amap-icon > img
+  </div>
+</div>
+```

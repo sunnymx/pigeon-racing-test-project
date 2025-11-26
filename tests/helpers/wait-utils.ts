@@ -16,13 +16,14 @@ import { Page } from '@playwright/test';
 /**
  * 等待 AMap 地圖瓦片載入完成
  *
- * 策略：檢查 .amap-container img 元素數量
- * 成功標準：至少載入指定數量的瓦片
+ * ⚠️ 已更新：原選擇器 .amap-container img 已棄用（AMap v2.0+ 改用 Canvas 渲染）
+ * 策略：檢查 canvas.amap-layer 元素是否已初始化
+ * 成功標準：Canvas 元素存在且尺寸 > 0
  *
  * @param page - Playwright Page 物件
- * @param minTiles - 最小瓦片數量（預設 50）
+ * @param minTiles - 已棄用參數（保留以維持向後兼容）
  * @param timeout - 超時時間（毫秒，預設 15000）
- * @throws 如果超時仍未達到最小瓦片數量
+ * @throws 如果超時仍未初始化
  */
 export async function waitForMapTiles(
   page: Page,
@@ -32,19 +33,22 @@ export async function waitForMapTiles(
   const startTime = Date.now();
 
   while (Date.now() - startTime < timeout) {
-    const tileCount = await page.locator('.amap-container img').count();
+    const canvas = page.locator('canvas.amap-layer').first();
+    const isVisible = await canvas.isVisible().catch(() => false);
 
-    if (tileCount >= minTiles) {
-      console.log(`✅ 地圖瓦片載入完成：${tileCount} 個`);
-      return tileCount;
+    if (isVisible) {
+      const box = await canvas.boundingBox();
+      if (box && box.width > 0 && box.height > 0) {
+        console.log(`✅ 地圖 Canvas 已載入完成：${box.width}x${box.height}`);
+        return 1; // 返回 1 表示 Canvas 已就緒
+      }
     }
 
     await page.waitForTimeout(500);
   }
 
-  const finalCount = await page.locator('.amap-container img').count();
   throw new Error(
-    `❌ 地圖瓦片載入超時：預期 >= ${minTiles}，實際 ${finalCount}`
+    `❌ 地圖 Canvas 載入超時：無法在 ${timeout}ms 內初始化`
   );
 }
 
@@ -156,9 +160,14 @@ export async function waitForTrajectoryData(
  * 等待模式切換完成
  *
  * 策略：
- * - 2D 模式：等待地圖瓦片載入
- * - 3D 模式：等待 Cesium 引擎就緒
+ * - 2D 模式：檢測 2D 特有 UI 元素（timeline 按鈕）和 3D 元素消失
+ * - 3D 模式：等待 Cesium 引擎就緒（視角按鈕出現）
  * - 額外等待 2-3 秒讓數據渲染（解決已知問題 #4）
+ *
+ * ⚠️ 重要更新 (2025-11-26)：
+ * 舊方法使用 .amap-container img 計數檢測 2D 模式，但現代高德地圖
+ * 使用 Canvas 渲染而非 <img> 標籤，導致檢測失敗。
+ * 新方法改用 UI 元素檢測，更可靠。
  *
  * @param page - Playwright Page 物件
  * @param targetMode - 目標模式 '2D' | '3D'
@@ -170,10 +179,24 @@ export async function waitForModeSwitch(
   timeout: number = 15000
 ): Promise<void> {
   if (targetMode === '2D') {
-    // 等待 AMap 瓦片載入
-    await waitForMapTiles(page, 50, timeout);
+    console.log('⏳ 等待 2D 模式載入（使用 UI 元素檢測）...');
+
+    // 方法：檢測 2D 模式特有的 timeline 按鈕
+    // 2D 模式有 timeline/airwave/square_foot 按鈕，3D 模式則有視角按鈕
+    const timelineButton = page.getByRole('button').filter({ hasText: 'timeline' });
+
+    try {
+      await timelineButton.waitFor({ state: 'visible', timeout });
+      console.log('✅ 2D 模式 timeline 按鈕已顯示');
+    } catch (error) {
+      // 備選：檢測 3D 特有元素（視角按鈕）是否消失
+      console.log('⚠️ timeline 按鈕未找到，嘗試檢測視角按鈕消失...');
+      const view1Button = page.getByRole('button', { name: /[视視]角1/ });
+      await view1Button.waitFor({ state: 'hidden', timeout: 5000 });
+      console.log('✅ 3D 視角按鈕已消失，確認進入 2D 模式');
+    }
   } else if (targetMode === '3D') {
-    // 等待 Cesium 引擎
+    // 等待 Cesium 引擎（檢測視角按鈕出現）
     await waitForCesium3D(page, timeout);
   }
 

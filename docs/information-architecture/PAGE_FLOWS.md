@@ -295,10 +295,11 @@ async function switchTo2D(page: Page): Promise<void> {
   await page.waitForSelector('.amap-container', { state: 'visible' });
 
   // 3. 等待地圖瓦片載入
-  await page.waitForFunction((minTiles) => {
-    const tiles = document.querySelectorAll('.amap-container img');
-    return tiles.length >= minTiles;
-  }, 50);
+  // ⚠️ 已棄用: .amap-container img (AMap v2.0+ 改用 Canvas 渲染)
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('canvas.amap-layer');
+    return canvas && canvas.width > 0 && canvas.height > 0;
+  });
 
   // 4. 額外等待確保穩定
   await page.waitForTimeout(2000);

@@ -341,10 +341,11 @@ async function verify2DMode(page: Page): Promise<boolean> {
   const noView1 = await page.getByRole('button', { name: '視角1' }).count() === 0;
   const noView2 = await page.getByRole('button', { name: '視角2' }).count() === 0;
 
-  // 方法 3: 檢查 AMap 瓦片
-  const mapTiles = await page.locator('.amap-container img').count();
+  // 方法 3: 檢查 AMap 容器可見性
+  // ⚠️ 注意 (2025-11-26): .amap-container img 已棄用，改用容器可見性檢查
+  const mapVisible = await page.locator('.amap-container').isVisible().catch(() => false);
 
-  return switch3DVisible && noView1 && noView2 && mapTiles > 10;
+  return switch3DVisible && noView1 && noView2 && mapVisible;
 }
 ```
 
@@ -481,8 +482,10 @@ test.describe('2D/3D 模式選擇測試', () => {
     expect(view1Count).toBe(0);
 
     // 6. 驗證 AMap 瓦片加載
-    const tileCount = await page.locator('.amap-container img').count();
-    expect(tileCount).toBeGreaterThan(10);
+    // ⚠️ 已棄用: .amap-container img (AMap v2.0+ 改用 Canvas 渲染)
+    // 建議改用: await page.locator('.amap-icon > img').count() 檢測軌跡標記
+    const markerCount = await page.locator('.amap-icon > img').count();
+    expect(markerCount).toBeGreaterThan(10);
   });
 });
 ```

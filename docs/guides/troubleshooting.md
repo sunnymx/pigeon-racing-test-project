@@ -55,11 +55,12 @@ await page.waitForTimeout(2000);
 ### 快速辨別
 ```typescript
 // 計算可見標記點
-const markers = await page.locator('[title*="2025-"]').count();
+// ⚠️ 選擇器更新 (2025-11-26): 使用 .amap-icon > img
+const markers = await page.locator('.amap-icon > img').count();
 
 if (markers >= 15) {
   console.log('靜態模式 - 顯示完整軌跡');
-} else {
+} else if (markers < 5) {
   console.log('動態模式 - 播放動畫');
 }
 ```
@@ -75,10 +76,10 @@ if (markers >= 15) {
 - Canvas 遮擋問題
 
 ### 快速解決
-使用 accessibility tree 定位：
+使用 DOM 結構定位：
 ```typescript
-// 使用 title 屬性定位
-await page.locator('[title*="2025-"]').first().click();
+// ⚠️ 選擇器更新 (2025-11-26): 使用 .amap-icon > img
+await page.locator('.amap-icon > img').first().click({ force: true });
 ```
 
 📖 完整方案：[Known Issues #3](../test-plan/KNOWN_ISSUES_SOLUTIONS.md#problem-3)
@@ -98,7 +99,8 @@ await page.locator('[title*="2025-"]').first().click();
 await page.waitForTimeout(2000-3000);
 
 // 或等待特定元素
-await page.waitForSelector('[title*="2025-"]', { timeout: 5000 });
+// ⚠️ 選擇器更新 (2025-11-26): 使用 .amap-icon > img
+await page.waitForSelector('.amap-icon > img', { timeout: 5000 });
 ```
 
 📖 完整策略：[Wait Strategies](testing-strategies.md#wait-strategies)
@@ -115,8 +117,33 @@ await page.waitForSelector('[title*="2025-"]', { timeout: 5000 });
 - [ ] 檢查 API 請求是否成功
 - [ ] 查看瀏覽器控制台錯誤
 - [ ] 參考已知問題解決方案
+- [ ] **確認未使用已棄用的選擇器**（見下方）
+
+---
+
+## ⚠️ 棄用選擇器警告 (2025-11-26)
+
+以下選擇器**已失效**，請勿使用：
+
+| 棄用選擇器 | 原因 | 替代方案 |
+|-----------|------|---------|
+| `.amap-container img` | AMap v2.0+ 改用 Canvas 渲染 | `canvas.amap-layer` 或 UI 元素檢測 |
+| `.amap-layer img` | 同上 | `canvas.amap-layer` |
+| `[title*="2025-"]` | 軌跡標記 DOM 結構變更 | `.amap-icon > img`（codegen 確認） |
+| `[title*="2025-26-"]` | 同上 | `.amap-icon > img` |
+
+**推薦的 2D 模式檢測方法**：
+```typescript
+// 方法1: 檢測 2D 特有 UI 元素
+const timelineButton = page.getByRole('button').filter({ hasText: 'timeline' });
+await timelineButton.waitFor({ state: 'visible' });
+
+// 方法2: 檢測 3D 元素消失
+const view1Button = page.getByRole('button', { name: /[视視]角1/ });
+await view1Button.waitFor({ state: 'hidden' });
+```
 
 ---
 
 **完整文檔**: [Known Issues Solutions](../test-plan/KNOWN_ISSUES_SOLUTIONS.md)
-**最後更新**: 2025-11-18
+**最後更新**: 2025-11-26

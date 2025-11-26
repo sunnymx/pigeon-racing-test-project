@@ -544,7 +544,7 @@ async function waitForModeSwitch(page: Page, expectedMode: '2D' | '3D'): Promise
 ```
 
 **實作重點**：
-- 地圖瓦片等待（`.amap-container img`）
+- 地圖瓦片等待（`canvas.amap-layer`）// ⚠️ 已棄用: .amap-container img
 - Cesium 3D 等待（`window.Cesium`, `viewer.scene.globe.tilesLoaded`）
 - 條件等待和超時處理
 

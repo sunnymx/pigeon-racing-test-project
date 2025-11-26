@@ -148,15 +148,16 @@ await page.waitForLoadState('networkidle');  // 网络空闲
 await page.waitForTimeout(1000-3000);        // 额外缓冲时间
 
 // 地图加载等待
-const tileCount = await page.locator('.amap-container img').count();
-expect(tileCount).toBeGreaterThan(50);
+// ⚠️ 已棄用: .amap-container img (AMap v2.0+ 改用 Canvas 渲染)
+const tileCount = await page.locator('canvas.amap-layer').count();
+expect(tileCount).toBeGreaterThan(0);
 
 // Cesium 3D 加载等待
 await page.waitForFunction(() => window.Cesium !== undefined);
 await page.waitForFunction(() => window.viewer?.scene.globe.tilesLoaded);
 
 // 元素可见性等待
-await page.waitForSelector('[title*="2025-26-"]', { timeout: 5000 });
+await page.waitForSelector('.amap-icon > img', { timeout: 5000 });
 ```
 
 ### 3.3 重试机制

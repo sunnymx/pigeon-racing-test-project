@@ -124,20 +124,35 @@ export async function reload2DTrajectory(
         console.log('  ✓ 已切換到 2D 模式');
       }
 
-      // 步驟7: 驗證地圖瓦片加載（靜態模式特徵）
-      const tileCount = await page.locator('.amap-container img, .amap-layer img').count();
+      // 步驟7: 驗證 2D 地圖加載
+      // ⚠️ 重要更新 (2025-11-26)：
+      // 舊方法使用 .amap-container img 計數，但現代高德地圖 (AMap v2.0+)
+      // 使用 Canvas 渲染而非 <img> 標籤，導致該方法失效。
+      // 新方法：檢查 Canvas 元素 + 地圖容器可見性 + 軌跡標記點
 
-      // 步驟8: 驗證軌跡線存在（通過 Canvas 檢查）
+      // 檢查 Canvas 圖層（軌跡線渲染）
       const canvas = await page.locator('canvas.amap-layer').count();
 
-      if (tileCount > 50 && canvas > 0) {
+      // 檢查地圖容器可見性（更可靠）
+      const mapContainerVisible = await page.locator('.amap-container').isVisible().catch(() => false);
+
+      // 檢查 2D 特有 UI 元素（timeline 按鈕）
+      const timelineVisible = await page.getByRole('button').filter({ hasText: 'timeline' }).isVisible().catch(() => false);
+
+      // 新增：檢查軌跡標記點數量
+      // DOM 結構：div > .amap-icon > img（由 codegen 確認）
+      const markerCount = await page.locator('.amap-icon > img').count();
+
+      if ((canvas > 0 || mapContainerVisible) && timelineVisible && markerCount > 0) {
         console.log(`✅ 2D 軌跡加載成功！`);
-        console.log(`   - 地圖瓦片數: ${tileCount}`);
         console.log(`   - Canvas 圖層: ${canvas}`);
+        console.log(`   - 地圖容器可見: ${mapContainerVisible}`);
+        console.log(`   - Timeline 按鈕可見: ${timelineVisible}`);
+        console.log(`   - 軌跡標記點: ${markerCount}`);
         return true;
       } else {
         console.warn(
-          `⚠️ 軌跡未完全加載 (瓦片: ${tileCount}, Canvas: ${canvas})，準備重試...`
+          `⚠️ 軌跡未完全加載 (Canvas: ${canvas}, 容器: ${mapContainerVisible}, Timeline: ${timelineVisible}, 標記: ${markerCount})，準備重試...`
         );
       }
     } catch (error) {
@@ -178,8 +193,8 @@ export async function ensure2DStaticMode(page: Page): Promise<boolean> {
   }
 
   // 驗證靜態模式特徵：軌跡點數量 >= 15
-  // 選擇器：紅色軌跡標記點（.amap-marker 內含 ff0000 圖片）
-  const markerCount = await page.locator('.amap-marker:has(img[src*="ff0000"])').count();
+  // DOM 結構：div > .amap-icon > img（由 codegen 確認）
+  const markerCount = await page.locator('.amap-icon > img').count();
 
   if (markerCount >= 15) {
     console.log(`✅ 已切換到 2D 靜態模式，軌跡點數: ${markerCount}`);

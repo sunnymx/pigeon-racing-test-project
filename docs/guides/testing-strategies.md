@@ -48,9 +48,24 @@ await page.waitForTimeout(1000-3000);
 ```
 
 ### 地圖瓦片等待
+
+> ⚠️ **棄用警告 (2025-11-26)**：
+> `.amap-container img` 選擇器已失效！
+> 高德地圖 (AMap v2.0+) 改用 Canvas 渲染，不再生成 `<img>` 元素。
+
 ```typescript
-const tileCount = await page.locator('.amap-container img').count();
-expect(tileCount).toBeGreaterThan(50);
+// ❌ 已過時 - 不要使用
+// const tileCount = await page.locator('.amap-container img').count();
+
+// ✅ 推薦方法 1: 檢查 2D 特有 UI 元素（timeline 按鈕）
+const timelineButton = page.getByRole('button').filter({ hasText: 'timeline' });
+await timelineButton.waitFor({ state: 'visible', timeout: 15000 });
+
+// ✅ 推薦方法 2: 檢查地圖容器 + Canvas
+const mapVisible = await page.locator('.amap-container').isVisible();
+const canvas = await page.locator('canvas.amap-layer').count();
+expect(mapVisible).toBe(true);
+expect(canvas).toBeGreaterThan(0);
 ```
 
 ### Cesium 3D 等待
@@ -90,4 +105,4 @@ function detectAnomaly(data) {
 
 ---
 
-**最後更新**: 2025-11-18
+**最後更新**: 2025-11-26

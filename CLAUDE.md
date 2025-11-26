@@ -152,11 +152,19 @@ Automated testing project for a pigeon racing GPS tracking system (https://skyra
 ### Known Issues Quick Reference
 
 1. **2D trajectory initial load failure** → Reload trajectory by re-selecting pigeon (or use 3D→2D switch as fallback)
-2. **Static/Dynamic mode confusion** → Count marker points (15-20 vs 1-3)
-3. **Trajectory point click unresponsive** → Use accessibility tree locator
+2. **Static/Dynamic mode confusion** → Count marker points (≥15 static vs <5 dynamic)
+3. **Trajectory point click unresponsive** → Use `.amap-icon > img` selector with `force: true`
 4. **Data loading timing** → Wait 2-3 seconds after switches
 
 📖 **Solutions**: [Troubleshooting Guide](docs/guides/troubleshooting.md)
+
+### ⚠️ Selector Quick Reference (2025-11-26)
+
+**關鍵選擇器**:
+- 軌跡標記點: `.amap-icon > img`
+- Canvas 圖層: `canvas.amap-layer`
+
+📖 **完整說明**: [Selectors Guide](docs/guides/selectors.md)
 
 ---
 
@@ -189,6 +197,19 @@ await page.getByRole('button', { name: '查看軌跡' }).click();
 ```
 
 📖 **Complete workflow**: [Playwright MCP Guide](docs/guides/playwright-workflow.md)
+
+---
+
+## 🛠️ Code Development Index
+
+**修改程式碼前，務必參閱索引確認影響範圍**
+
+| 模組類型 | 數量 | 說明 |
+|---------|------|------|
+| Helper 函數 | 7 模組 | `tests/helpers/` - 導航、模式切換、軌跡操作等 |
+| P0 測試案例 | 3 個 | `tests/e2e/` - TC-02-001, TC-03-001, TC-04-001 |
+
+📖 **完整說明**: [Helper Functions](docs/architecture/helper-functions.md)
 
 ---
 
@@ -293,24 +314,24 @@ git remote -v
 
 ## 📊 Project Status
 
-**Last Updated**: 2025-11-18
+**Last Updated**: 2025-11-26
 
 **Current State**:
 - ✅ MVP testing completed
 - ✅ Test plan documentation complete (35+ test cases)
-- ✅ Documentation consistency verified (10/10 score)
-- ✅ TC-03-008 corrected and verified
-- ✅ Architecture and guides documented
-- ✅ **Phase 1 Day 3 completed** - Technical architecture docs (4 documents)
-- 🚧 Automation script implementation pending
+- ✅ Documentation consistency verified (9.75/10 score)
+- ✅ P0 測試案例實作完成 (3/3)
+- ✅ Helper 函數模組完整 (7/7)
+- ✅ 選擇器更新完成 (`.amap-icon > img`)
+- 🚧 P1/P2 測試案例待實作
 
-**Documentation Statistics**:
-- 📋 Test cases: 35+
-- 🔧 Helper functions: 25+ (designed)
+**Project Statistics**:
+- 📋 Test cases: 35+ (3 P0 implemented)
+- 🔧 Helper functions: 7 modules (~1,828 lines)
 - 🔌 API endpoints: 6
-- ⚠️ Known issues: 4 (solved)
-- 📖 Guides: 4
-- 🏗️ Architecture docs: 10 (Phase 1 complete)
+- ⚠️ Known issues: 4 (all solved)
+- 📖 Guides: 5
+- 🏗️ Architecture docs: 10
 
 ---
 
@@ -338,4 +359,4 @@ git remote -v
 
 ---
 
-**Documentation last updated**: 2025-11-18 - Architecture restructuring completed.
+**Documentation last updated**: 2025-11-26 - Separation of Concerns refactoring completed.

@@ -48,14 +48,14 @@ export interface TrajectoryPointInfo {
 /**
  * 獲取所有軌跡標記點
  *
- * 策略：尋找紅色軌跡標記點（.amap-marker 內含 ff0000 圖片）
- * DOM 結構：<div class="amap-marker"><div class="amap-icon"><img src="./assets/pings/ff0000.png"></div></div>
+ * DOM 結構：div > .amap-icon > img（由 codegen 確認）
+ * 支援多鴿子不同顏色的軌跡
  *
  * @param page - Playwright Page 物件
  * @returns 軌跡標記點的 Locator 陣列
  */
 export async function getTrajectoryPoints(page: Page): Promise<Locator[]> {
-  const markers = page.locator('.amap-marker:has(img[src*="ff0000"])');
+  const markers = page.locator('.amap-icon > img');
   const count = await markers.count();
 
   console.log(`📍 找到 ${count} 個軌跡標記點`);
@@ -70,11 +70,13 @@ export async function getTrajectoryPoints(page: Page): Promise<Locator[]> {
  * - 靜態模式：≥ 15 個標記
  * - 動態模式：< 5 個標記
  *
+ * DOM 結構：div > .amap-icon > img（由 codegen 確認）
+ *
  * @param page - Playwright Page 物件
  * @returns 標記點數量
  */
 export async function getTrajectoryPointsCount(page: Page): Promise<number> {
-  const markers = page.locator('.amap-marker:has(img[src*="ff0000"])');
+  const markers = page.locator('.amap-icon > img');
   return await markers.count();
 }
 

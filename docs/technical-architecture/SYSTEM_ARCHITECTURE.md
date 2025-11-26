@@ -488,9 +488,10 @@ async function waitForAMapReady(page: Page): Promise<void> {
   // 方法1: 等待瓦片圖片加載
   await page.waitForSelector('.amap-layer img', { state: 'visible' });
 
-  // 方法2: 計數瓦片數量（應 >= 50 個）
-  const tileCount = await page.locator('.amap-container img').count();
-  expect(tileCount).toBeGreaterThan(50);
+  // 方法2: 計數瓦片數量（應 >= 1 個 Canvas）
+  // ⚠️ 已棄用: .amap-container img (AMap v2.0+ 改用 Canvas 渲染)
+  const tileCount = await page.locator('canvas.amap-layer').count();
+  expect(tileCount).toBeGreaterThan(0);
 
   // 方法3: 等待固定時間（2-3秒）
   await page.waitForTimeout(2000);

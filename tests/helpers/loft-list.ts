@@ -178,7 +178,7 @@ export async function verifyMultipleTrajectories(
   await page.waitForTimeout(5000);
 
   // 檢查軌跡標記（紅色軌跡標記點，可能有多組）
-  const allMarkers = page.locator('.amap-marker:has(img[src*="ff0000"])');
+  const allMarkers = page.locator('.amap-icon > img');
   const markerCount = await allMarkers.count();
 
   console.log(`📍 找到 ${markerCount} 個軌跡標記`);

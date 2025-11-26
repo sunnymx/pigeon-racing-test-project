@@ -208,7 +208,7 @@ export async function detectCurrentViewMode(
   }
 
   // 檢查 2D 模式下的標記數量（紅色軌跡標記點）
-  const markers = page.locator('.amap-marker:has(img[src*="ff0000"])');
+  const markers = page.locator('.amap-icon > img');
   const markerCount = await markers.count().catch(() => 0);
 
   if (markerCount >= 15) {

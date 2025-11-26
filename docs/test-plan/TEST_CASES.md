@@ -203,8 +203,9 @@ await page.getByRole('button', { name: '2d 2D模式' }).click();
 await page.waitForTimeout(2000);
 
 // 验证地图瓦片
-const tileCount = await page.locator('.amap-container img').count();
-expect(tileCount).toBeGreaterThan(50);
+// ⚠️ 已棄用: .amap-container img (AMap v2.0+ 改用 Canvas 渲染)
+const tileCount = await page.locator('canvas.amap-layer').count();
+expect(tileCount).toBeGreaterThan(0);
 ```
 
 **参考文档**: [TEST_REPORT.md - 问题#1](../../TEST_REPORT.md#问题-1-2d轨迹初次载入失败)
@@ -226,12 +227,12 @@ expect(tileCount).toBeGreaterThan(50);
 
 **验证方法**:
 ```typescript
-let markerCount = await page.locator('[title*="2025-26-"]').count();
+let markerCount = await page.locator('.amap-icon > img').count();
 if (markerCount < 3) {
   await page.locator('button:has(img[alt="timeline"])').click();
   await page.waitForTimeout(1000);
 }
-markerCount = await page.locator('[title*="2025-26-"]').count();
+markerCount = await page.locator('.amap-icon > img').count();
 expect(markerCount).toBeGreaterThanOrEqual(3);
 ```
 
@@ -255,7 +256,7 @@ expect(markerCount).toBeGreaterThanOrEqual(3);
 
 **验证方法**:
 ```typescript
-const markers = await page.locator('[title*="2025-26-"]').all();
+const markers = await page.locator('.amap-icon > img').all();
 const middleIndex = Math.floor(markers.length / 2);
 await markers[middleIndex].click();
 
@@ -339,7 +340,7 @@ expect(apiCalled).toBe(true);
 
 **验证方法**:
 ```typescript
-let markerCount = await page.locator('[title*="2025-26-"]').count();
+let markerCount = await page.locator('.amap-icon > img').count();
 if (markerCount >= 3) {
   await page.locator('button:has(img[alt="timeline"])').click();
   await page.waitForTimeout(1000);

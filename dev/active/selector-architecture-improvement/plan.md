@@ -109,8 +109,8 @@ export const SELECTORS = {
     mapContainer: '.amap-container',
     cesiumCanvas: 'canvas.cesium-viewer-canvas',
     amapCanvas: 'canvas.amap-layer',
-    trajectoryMarkers: '.amap-marker:has(img[src*="ff0000"])',
-    mapTiles: '.amap-container img',
+    trajectoryMarkers: '.amap-icon > img', // ⚠️ 已更新：舊選擇器 .amap-marker:has(img[src*="ff0000"]) 已棄用
+    mapTiles: 'canvas.amap-layer', // ⚠️ 已更新：舊選擇器 .amap-container img 已棄用
   },
 
   // 軌跡詳情面板

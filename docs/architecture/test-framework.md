@@ -255,8 +255,9 @@ await page.waitForFunction(() => window.Cesium !== undefined);
 await expect(page.getByRole('button', { name: 'view_in_ar 3D模式' })).toBeVisible();
 
 // AMap 瓦片
-const tileCount = await page.locator('.amap-container img').count();
-expect(tileCount).toBeGreaterThan(50);
+// ⚠️ 已棄用: .amap-container img (AMap v2.0+ 改用 Canvas 渲染)
+const tileCount = await page.locator('canvas.amap-layer').count();
+expect(tileCount).toBeGreaterThan(0);
 ```
 
 ### 模式特有功能
