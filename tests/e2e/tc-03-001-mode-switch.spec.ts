@@ -52,10 +52,7 @@ test.describe('TC-03-001: 2D 靜態/動態模式切換 @P0', () => {
 
     // ===== 步驟 5: 切換到動態模式 =====
     console.log('📍 步驟 2: 切換到動態模式');
-    // 使用 Material Icon 文字匹配（不是 img 標籤）
-    const timelineButton = page.getByRole('button').filter({ hasText: 'timeline' });
-    await timelineButton.click();
-    await page.waitForTimeout(2000);
+    await switchSubMode2D(page, 'dynamic');
 
     // 驗證動態模式（標記點減少）
     pointsCount = await getTrajectoryPointsCount(page);
@@ -66,16 +63,22 @@ test.describe('TC-03-001: 2D 靜態/動態模式切換 @P0', () => {
     expect(currentMode).toBe('2D-dynamic');
     console.log(`  ✓ 模式偵測：${currentMode}`);
 
-    // 驗證播放控制按鈕存在
+    // 驗證播放控制按鈕存在（容忍自動播放）
     const playButton = page.getByRole('button').filter({ hasText: 'play_arrow' });
-    await expect(playButton).toBeVisible({ timeout: 5000 });
-    console.log('  ✓ 播放控制按鈕已顯示');
+    const pauseButton = page.getByRole('button').filter({ hasText: 'pause' });
+    const isPlaying = await pauseButton.isVisible().catch(() => false);
+
+    if (isPlaying) {
+      console.log('  ℹ️ 動態模式已自動播放，顯示 pause');
+      await expect(pauseButton).toBeVisible({ timeout: 5000 });
+    } else {
+      await expect(playButton).toBeVisible({ timeout: 10000 });
+    }
+    console.log('  ✓ 播放控制按鈕可見');
 
     // ===== 步驟 6: 切換回靜態模式 =====
     console.log('📍 步驟 3: 切換回靜態模式');
-    // 再次點擊 timeline 按鈕切換回靜態
-    await page.getByRole('button').filter({ hasText: 'timeline' }).click();
-    await page.waitForTimeout(2000);
+    await switchSubMode2D(page, 'static');
 
     // 驗證恢復靜態模式
     pointsCount = await getTrajectoryPointsCount(page);
@@ -98,7 +101,18 @@ test.describe('TC-03-001: 2D 靜態/動態模式切換 @P0', () => {
     await switchSubMode2D(page, 'dynamic');
 
     // 驗證播放控制元素
-    await expect(page.getByRole('button').filter({ hasText: 'play_arrow' })).toBeVisible();
+    const playButton = page.getByRole('button').filter({ hasText: 'play_arrow' });
+    const pauseButton = page.getByRole('button').filter({ hasText: 'pause' });
+
+    // 動態模式可能自動播放：若已播放則顯示 pause，否則應有 play_arrow
+    const isPlaying = await pauseButton.isVisible().catch(() => false);
+    if (!isPlaying) {
+      await expect(playButton).toBeVisible({ timeout: 10000 });
+    } else {
+      console.log('  ℹ️ 動態模式已自動播放，顯示 pause');
+      await expect(pauseButton).toBeVisible({ timeout: 5000 });
+    }
+
     await expect(page.getByRole('button').filter({ hasText: 'fast_forward' })).toBeVisible();
     await expect(page.getByRole('button').filter({ hasText: 'fast_rewind' })).toBeVisible();
 
@@ -121,13 +135,24 @@ test.describe('TC-03-001: 2D 靜態/動態模式切換 @P0', () => {
     const initialTime = await timeDisplay.textContent();
     console.log(`  初始時間：${initialTime}`);
 
-    // 點擊播放按鈕
+    const pauseButton = page.getByRole('button').filter({ hasText: 'pause' });
     const playButton = page.getByRole('button').filter({ hasText: 'play_arrow' });
+
+    // 動態模式可能自動播放：若已播放，先暫停再做播放驗證
+    const isPlaying = await pauseButton.isVisible().catch(() => false);
+    if (isPlaying) {
+      console.log('  ℹ️ 動態模式已自動播放，先暫停再測試');
+      await pauseButton.click();
+      await page.waitForTimeout(500);
+    }
+
+    // 確認播放按鈕可見並點擊
+    await expect(playButton).toBeVisible({ timeout: 5000 });
+    console.log('  ✓ 播放按鈕已就緒');
     await playButton.click();
     await page.waitForTimeout(2000);
 
     // 驗證播放圖標變為暫停
-    const pauseButton = page.getByRole('button').filter({ hasText: 'pause' });
     await expect(pauseButton).toBeVisible({ timeout: 5000 });
     console.log('  ✓ 播放按鈕變為暫停按鈕');
 

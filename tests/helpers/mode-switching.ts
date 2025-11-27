@@ -256,9 +256,19 @@ export async function switchSubMode2D(
     return;
   }
 
-  // 點擊 timeline 按鈕切換（使用 Material Icon 文字匹配，不是 img 標籤）
-  const timelineButton = page.getByRole('button').filter({ hasText: 'timeline' });
-  await timelineButton.click();
+  // 優先點擊右上角「切換動態/靜態模式」按鈕；若不存在，退回 timeline 按鈕
+  const toggleButton = page.getByRole('button', {
+    name: /切換動態\/靜態模式|切换动态\/静态模式/,
+  });
+  const hasToggle = (await toggleButton.count()) > 0;
+
+  if (hasToggle) {
+    await toggleButton.first().click();
+  } else {
+    const timelineButton = page.getByRole('button').filter({ hasText: 'timeline' });
+    await timelineButton.click();
+  }
+
   await page.waitForTimeout(2000);
 
   // 驗證切換成功
