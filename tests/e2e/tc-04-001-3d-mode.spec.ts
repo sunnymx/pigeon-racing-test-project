@@ -88,26 +88,24 @@ test.describe('TC-04-001: 3D 模式基本渲染 @P0', () => {
     // 等待 Cesium 完全就緒
     await waitForCesium3D(page, 30000);
 
-    // 詳細檢查 Cesium 對象
+    // 詳細檢查 Cesium 初始化狀態（使用實際暴露的全域與 DOM 特徵）
     const cesiumDetails = await page.evaluate(() => {
-      const cesium = (window as any).Cesium;
-      const viewer = (window as any).viewer;
-
       return {
-        hasCesium: typeof cesium !== 'undefined',
-        hasViewer: typeof viewer !== 'undefined',
-        hasScene: viewer && typeof viewer.scene !== 'undefined',
-        hasGlobe: viewer && viewer.scene && typeof viewer.scene.globe !== 'undefined',
-        tilesLoaded: viewer?.scene?.globe?.tilesLoaded || false,
+        hasCesiumVersion: typeof (window as any).CESIUM_VERSION !== 'undefined',
+        hasCesiumBaseUrl: typeof (window as any).CESIUM_BASE_URL !== 'undefined',
+        cesiumVersion: (window as any).CESIUM_VERSION || null,
+        widgetCount: document.querySelectorAll('.cesium-widget, .cesium-viewer, [class*="cesium-viewer"]').length,
+        hasTimelineCanvas: document.querySelector('canvas.cesium-timeline-tracks') !== null,
+        canvasCount: document.querySelectorAll('canvas').length,
       };
     });
 
     console.log('Cesium 初始化詳情：', cesiumDetails);
 
-    expect(cesiumDetails.hasCesium).toBe(true);
-    expect(cesiumDetails.hasViewer).toBe(true);
-    expect(cesiumDetails.hasScene).toBe(true);
-    expect(cesiumDetails.hasGlobe).toBe(true);
+    expect(cesiumDetails.hasCesiumVersion).toBe(true);
+    expect(cesiumDetails.hasCesiumBaseUrl).toBe(true);
+    expect(cesiumDetails.widgetCount).toBeGreaterThan(0);
+    expect(cesiumDetails.hasTimelineCanvas).toBe(true);
 
     console.log('✅ Cesium 引擎驗證通過');
   });
