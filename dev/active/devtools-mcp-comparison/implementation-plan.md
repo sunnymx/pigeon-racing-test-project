@@ -1,8 +1,8 @@
 # Chrome DevTools MCP 實作計劃
 
 **建立日期**: 2025-11-28
-**最後更新**: 2025-11-28
-**狀態**: 🚧 Phase 1 完成 (100%)，Phase 2 待開始
+**最後更新**: 2025-12-01
+**狀態**: ✅ Phase 2 完成 (100%)，Phase 3 待開始
 
 ---
 
@@ -71,16 +71,19 @@ tests/
 
 **Phase 1 總計**: 260 行 (預估 200 行)
 
-### Phase 2: Helper 轉換 (3-5 天)
+### Phase 2: Helper 轉換 (3-5 天) ✅ 完成
 
-| 順序 | 模組 | 預估行數 | 依賴 |
-|------|------|----------|------|
-| 2.1 | `navigation.ts` | ~180 | devtools-core |
-| 2.2 | `wait-utils.ts` | ~200 | devtools-core |
-| 2.3 | `mode-switching.ts` | ~250 | navigation, wait-utils |
-| 2.4 | `trajectory-utils.ts` | ~280 | devtools-core, wait-utils |
-| 2.5 | `trajectory-reload.ts` | ~180 | navigation, mode-switching |
-| 2.6 | `loft-list.ts` | ~200 | devtools-core, navigation |
+| 順序 | 模組 | 預估行數 | 實際行數 | 狀態 |
+|------|------|----------|----------|------|
+| 2.1 | `wait-utils.ts` | ~200 | 284 | ✅ |
+| 2.2 | `navigation.ts` | ~180 | 220 | ✅ |
+| 2.3 | `mode-switching.ts` | ~250 | 250 | ✅ |
+| 2.4 | `trajectory-utils.ts` | ~280 | 265 | ✅ |
+| 2.5 | `trajectory-reload.ts` | ~180 | 164 | ✅ |
+| 2.6 | `loft-list.ts` | ~200 | 259 | ✅ |
+| 2.7 | `devtools-core.ts` 擴展 | - | +93 | ✅ |
+
+**Phase 2 總計**: 1,723 行 (預估 1,290 行) - 含 devtools-core 281 行
 
 ### Phase 3: 測試轉換 (2-3 天)
 
