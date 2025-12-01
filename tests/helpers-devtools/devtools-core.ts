@@ -186,3 +186,96 @@ export function getElementText(
 
   return null;
 }
+
+// ============================================================================
+// Canvas 操作函數（用於 a11y 樹外的元素）
+// ============================================================================
+
+/**
+ * 生成點擊座標的 JavaScript 腳本
+ *
+ * 使用完整滑鼠事件序列：mousedown → mouseup → click
+ * 這是 Phase 1 驗證中確認有效的方案
+ *
+ * @param x - 點擊 X 座標
+ * @param y - 點擊 Y 座標
+ * @returns 可在 evaluate_script 中執行的腳本
+ */
+export function generateClickScript(x: number, y: number): string {
+  return `
+    () => {
+      const element = document.elementFromPoint(${x}, ${y});
+      if (!element) return { success: false, error: 'No element at coordinates' };
+
+      const events = ['mousedown', 'mouseup', 'click'];
+      events.forEach(eventType => {
+        const event = new MouseEvent(eventType, {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: ${x},
+          clientY: ${y},
+          button: 0,
+          buttons: 1
+        });
+        element.dispatchEvent(event);
+      });
+
+      return { success: true, tagName: element.tagName };
+    }
+  `;
+}
+
+/**
+ * 生成查詢 DOM 元素座標的 JavaScript 腳本
+ *
+ * @param selector - CSS 選擇器
+ * @param index - 元素索引（預設 0）
+ * @returns 可在 evaluate_script 中執行的腳本
+ */
+export function generateGetCoordinatesScript(selector: string, index: number = 0): string {
+  return `
+    () => {
+      const elements = document.querySelectorAll('${selector}');
+      if (elements.length === 0) return null;
+      if (${index} >= elements.length) return null;
+
+      const el = elements[${index}];
+      const rect = el.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        width: rect.width,
+        height: rect.height,
+        count: elements.length
+      };
+    }
+  `;
+}
+
+/**
+ * 生成查詢 DOM 元素數量的 JavaScript 腳本
+ *
+ * @param selector - CSS 選擇器
+ * @returns 可在 evaluate_script 中執行的腳本
+ */
+export function generateCountElementsScript(selector: string): string {
+  return `
+    () => document.querySelectorAll('${selector}').length
+  `;
+}
+
+/**
+ * 生成讀取彈窗內容的 JavaScript 腳本
+ *
+ * @param selector - 彈窗內容選擇器（預設 .amap-info-content）
+ * @returns 可在 evaluate_script 中執行的腳本
+ */
+export function generateReadPopupScript(selector: string = '.amap-info-content'): string {
+  return `
+    () => {
+      const popup = document.querySelector('${selector}');
+      return popup ? popup.innerText : null;
+    }
+  `;
+}
