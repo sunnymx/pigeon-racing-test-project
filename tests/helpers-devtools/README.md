@@ -2,20 +2,26 @@
 
 Chrome DevTools MCP 版本的測試輔助函數。
 
-**狀態**: ✅ Phase 2 完成 (2025-12-01)
+**狀態**: ✅ Phase 2 完成, Phase 3 Step 0 完成 (2025-12-01)
 
 ## 模組列表
 
 | 模組 | 行數 | 說明 |
 |------|------|------|
 | `devtools-core.ts` | 281 | 核心工具 + Canvas 操作 |
-| `wait-utils.ts` | 284 | 等待策略 |
+| `wait-utils.ts` | 325 | 等待策略 |
 | `navigation.ts` | 220 | 導航輔助函數 |
 | `mode-switching.ts` | 250 | 2D/3D 模式切換 |
-| `trajectory-utils.ts` | 265 | 軌跡工具函數 |
+| `trajectory-utils.ts` | 352 | 軌跡工具函數 |
 | `trajectory-reload.ts` | 164 | 軌跡重載 |
 | `loft-list.ts` | 259 | 鴿舍列表操作 |
-| **總計** | **1,723** | — |
+| **總計** | **1,851** | — |
+
+## 共用模組
+
+| 模組 | 位置 | 說明 |
+|------|------|------|
+| `validators.ts` | `tests/shared/` | 數據驗證器（無瀏覽器依賴） |
 
 ## devtools-core.ts
 
@@ -47,6 +53,7 @@ Chrome DevTools MCP 版本的測試輔助函數。
 - `waitForApiResponse()` - 等待 API 響應
 - `waitForModeSwitch()` - 等待模式切換
 - `retryAsync()` - 通用重試邏輯
+- `waitForTrajectoryData()` - 等待軌跡數據 API (Phase 3 新增)
 
 ## navigation.ts
 
@@ -79,6 +86,7 @@ Chrome DevTools MCP 版本的測試輔助函數。
 - `verifyTrajectoryRendered()` - 驗證軌跡渲染
 - `waitForTrajectoryRender()` - 等待軌跡渲染
 - `getWaypointCountFromDetails()` - 取得航點數量
+- `verifyTrajectoryData()` - 提取側邊欄軌跡數據 (Phase 3 新增)
 
 ## trajectory-reload.ts
 

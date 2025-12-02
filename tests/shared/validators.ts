@@ -1,0 +1,257 @@
+/**
+ * validators.ts - 數據驗證框架 (共用)
+ *
+ * 職責：飛行數據質量保證
+ * - 驗證數據範圍
+ * - 檢測異常數據
+ * - 驗證關係一致性
+ *
+ * 注意：此模組無瀏覽器依賴，可被 Playwright 和 DevTools MCP 共用
+ *
+ * 參考文檔：
+ * - docs/guides/testing-strategies.md#data-validation
+ * - docs/architecture/test-framework.md#data-validation-framework
+ */
+
+/**
+ * 軌跡數據接口 (簡化版，避免循環依賴)
+ */
+export interface TrajectoryData {
+  ringNumber: string;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  avgSpeed: number;
+  maxSpeed: number;
+  avgAltitude: number;
+  maxAltitude: number;
+  actualDistance: number;
+  straightDistance: number;
+}
+
+/**
+ * 驗證規則接口
+ */
+export interface ValidationRule {
+  min: number;
+  max: number;
+  typical?: string;
+}
+
+/**
+ * 驗證結果接口
+ */
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  data: TrajectoryData;
+}
+
+/**
+ * 飛行數據驗證規則
+ *
+ * 基於實際觀察的合理範圍
+ */
+export const FLIGHT_DATA_RULES: Record<string, ValidationRule> = {
+  avgSpeed: {
+    min: 800,
+    max: 2000,
+    typical: '1200-1500 m/Min',
+  },
+  maxSpeed: {
+    min: 1000,
+    max: 2500,
+    typical: '1500-2000 m/Min',
+  },
+  avgAltitude: {
+    min: 0,
+    max: 3000,
+    typical: '100-500 m',
+  },
+  maxAltitude: {
+    min: 0,
+    max: 5000,
+    typical: '500-1000 m',
+  },
+  actualDistance: {
+    min: 1,
+    max: 1000,
+    typical: '50-300 km',
+  },
+  straightDistance: {
+    min: 1,
+    max: 800,
+    typical: '50-250 km',
+  },
+};
+
+/**
+ * 驗證數值範圍
+ */
+function validateRange(value: number, rule: ValidationRule): boolean {
+  return value >= rule.min && value <= rule.max;
+}
+
+/**
+ * 驗證飛行數據
+ *
+ * @param data - 軌跡數據
+ * @returns 驗證結果
+ */
+export function validateFlightData(data: TrajectoryData): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // 驗證必填欄位
+  if (!data.ringNumber) {
+    errors.push('❌ 缺少公環號');
+  }
+
+  // 驗證速度
+  if (!validateRange(data.avgSpeed, FLIGHT_DATA_RULES.avgSpeed)) {
+    errors.push(
+      `❌ 平均分速超出範圍：${data.avgSpeed} (預期 ${FLIGHT_DATA_RULES.avgSpeed.min}-${FLIGHT_DATA_RULES.avgSpeed.max})`
+    );
+  }
+
+  if (!validateRange(data.maxSpeed, FLIGHT_DATA_RULES.maxSpeed)) {
+    errors.push(
+      `❌ 最高分速超出範圍：${data.maxSpeed} (預期 ${FLIGHT_DATA_RULES.maxSpeed.min}-${FLIGHT_DATA_RULES.maxSpeed.max})`
+    );
+  }
+
+  // 驗證高度
+  if (!validateRange(data.avgAltitude, FLIGHT_DATA_RULES.avgAltitude)) {
+    warnings.push(
+      `⚠️ 平均高度超出常見範圍：${data.avgAltitude} (常見 ${FLIGHT_DATA_RULES.avgAltitude.typical})`
+    );
+  }
+
+  if (!validateRange(data.maxAltitude, FLIGHT_DATA_RULES.maxAltitude)) {
+    warnings.push(
+      `⚠️ 最大高度超出常見範圍：${data.maxAltitude} (常見 ${FLIGHT_DATA_RULES.maxAltitude.typical})`
+    );
+  }
+
+  // 驗證距離
+  if (!validateRange(data.actualDistance, FLIGHT_DATA_RULES.actualDistance)) {
+    errors.push(
+      `❌ 實際距離超出範圍：${data.actualDistance} (預期 ${FLIGHT_DATA_RULES.actualDistance.min}-${FLIGHT_DATA_RULES.actualDistance.max})`
+    );
+  }
+
+  if (!validateRange(data.straightDistance, FLIGHT_DATA_RULES.straightDistance)) {
+    errors.push(
+      `❌ 直線距離超出範圍：${data.straightDistance} (預期 ${FLIGHT_DATA_RULES.straightDistance.min}-${FLIGHT_DATA_RULES.straightDistance.max})`
+    );
+  }
+
+  // 驗證關係一致性
+  if (data.maxSpeed < data.avgSpeed) {
+    errors.push(
+      `❌ 邏輯錯誤：最高分速 (${data.maxSpeed}) < 平均分速 (${data.avgSpeed})`
+    );
+  }
+
+  if (data.maxAltitude < data.avgAltitude) {
+    errors.push(
+      `❌ 邏輯錯誤：最大高度 (${data.maxAltitude}) < 平均高度 (${data.avgAltitude})`
+    );
+  }
+
+  if (data.actualDistance < data.straightDistance) {
+    warnings.push(
+      `⚠️ 異常：實際距離 (${data.actualDistance}) < 直線距離 (${data.straightDistance})`
+    );
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    data,
+  };
+}
+
+/**
+ * 檢測異常數據
+ *
+ * 基於 MVP 測試發現的實際異常案例
+ *
+ * @param data - 軌跡數據
+ * @returns 異常描述（無異常返回 null）
+ */
+export function detectAnomaly(data: TrajectoryData): string | null {
+  // 檢測超大距離異常（實際案例：46,168 km）
+  if (data.actualDistance > 10000) {
+    return `🚨 嚴重異常：實際距離 ${data.actualDistance} km（可能是數據錯誤）`;
+  }
+
+  // 檢測超高速度異常（實際案例：106,529 m/Min）
+  if (data.avgSpeed > 10000) {
+    return `🚨 嚴重異常：平均分速 ${data.avgSpeed} m/Min（可能是單位錯誤）`;
+  }
+
+  // 檢測零值異常
+  if (data.actualDistance === 0 || data.avgSpeed === 0) {
+    return `⚠️ 數據異常：關鍵欄位為零（可能未載入完成）`;
+  }
+
+  return null;
+}
+
+/**
+ * 驗證速度範圍
+ */
+export function validateSpeedRange(speed: number): boolean {
+  return validateRange(speed, FLIGHT_DATA_RULES.avgSpeed);
+}
+
+/**
+ * 驗證高度範圍
+ */
+export function validateAltitudeRange(altitude: number): boolean {
+  return validateRange(altitude, FLIGHT_DATA_RULES.avgAltitude);
+}
+
+/**
+ * 驗證距離範圍
+ */
+export function validateDistanceRange(distance: number): boolean {
+  return validateRange(distance, FLIGHT_DATA_RULES.actualDistance);
+}
+
+/**
+ * 格式化驗證報告
+ *
+ * @param result - 驗證結果
+ * @returns 格式化的報告字串
+ */
+export function formatValidationReport(result: ValidationResult): string {
+  const lines: string[] = [];
+
+  lines.push('=== 數據驗證報告 ===');
+  lines.push(`狀態：${result.isValid ? '✅ 通過' : '❌ 失敗'}`);
+
+  if (result.errors.length > 0) {
+    lines.push('\n【錯誤】');
+    result.errors.forEach((error) => lines.push(`  ${error}`));
+  }
+
+  if (result.warnings.length > 0) {
+    lines.push('\n【警告】');
+    result.warnings.forEach((warning) => lines.push(`  ${warning}`));
+  }
+
+  lines.push('\n【數據】');
+  lines.push(`  公環號：${result.data.ringNumber}`);
+  lines.push(`  平均分速：${result.data.avgSpeed} m/Min`);
+  lines.push(`  最高分速：${result.data.maxSpeed} m/Min`);
+  lines.push(`  平均高度：${result.data.avgAltitude} m`);
+  lines.push(`  最大高度：${result.data.maxAltitude} m`);
+  lines.push(`  實際距離：${result.data.actualDistance} km`);
+  lines.push(`  直線距離：${result.data.straightDistance} km`);
+
+  return lines.join('\n');
+}

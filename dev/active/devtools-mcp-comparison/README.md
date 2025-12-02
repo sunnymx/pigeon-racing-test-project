@@ -2,7 +2,7 @@
 
 **建立日期**: 2025-11-28
 **最後更新**: 2025-12-01
-**狀態**: ✅ Phase 2 完成 (6/6 模組)
+**狀態**: ✅ Phase 3 完成 (3/3 測試 + 重構)
 
 ## 簡介
 
@@ -18,7 +18,7 @@
 |------|------|--------|
 | Phase 1: 基礎建設 | ✅ 完成 | 100% |
 | Phase 2: Helper 轉換 | ✅ 完成 | 100% (6/6) |
-| Phase 3: 測試轉換 | ⏳ 待開始 | 0% |
+| Phase 3: 測試轉換 | ✅ 完成 | 100% (3/3) |
 | Phase 4: 對比報告 | ⏳ 待開始 | 0% |
 
 ## 文件結構
@@ -28,7 +28,15 @@ dev/active/devtools-mcp-comparison/
 ├── README.md                           # 本文件
 ├── implementation-plan.md              # 完整實作計劃
 ├── api-mapping.md                      # Playwright → DevTools API 映射
-└── phase1-verification-report.md       # Phase 1 驗證報告 ✅ NEW
+└── phase1-verification-report.md       # Phase 1 驗證報告
+
+tests/e2e-devtools/
+├── shared/
+│   ├── test-types.ts                   # 共用型別 (63 行)
+│   └── test-runner.ts                  # 基礎測試執行器 (120 行)
+├── tc-02-001-2d-static.devtools.ts     # 2D 靜態測試 (219 行)
+├── tc-03-001-mode-switch.devtools.ts   # 模式切換測試 (300 行)
+└── tc-04-001-3d-mode.devtools.ts       # 3D 模式測試 (392 行)
 ```
 
 ## 已完成工作
@@ -79,7 +87,7 @@ dev/active/devtools-mcp-comparison/
 | 目標 | A/B 對比實驗（保留 Playwright） |
 | 範圍 | 3 個 P0 測試 + 7 個 Helper 模組 |
 | 預估工作量 | ~10 天，~2,610 行程式碼 |
-| 已完成行數 | **~1,723 行 (66%)** |
+| 已完成行數 | **~2,945 行 (113%)** |
 | 執行方式 | 先互動式驗證 → 再腳本式自動化 |
 
 ## 下一步
@@ -93,21 +101,41 @@ dev/active/devtools-mcp-comparison/
 7. [x] ~~建立 trajectory-utils.ts~~
 8. [x] ~~建立 trajectory-reload.ts~~
 9. [x] ~~建立 loft-list.ts~~
-10. [ ] 轉換測試案例 ← **Phase 3 下一步**
-11. [ ] 執行對比並產生報告
+10. [x] ~~Phase 3 Step 0: 前置修補~~ (validators.ts, verifyTrajectoryData, waitForTrajectoryData)
+11. [x] ~~Phase 3 Step 1-3: 測試轉換~~ (TC-02-001, TC-03-001, TC-04-001)
+12. [x] ~~Phase 3 重構: 共用模組~~ (test-types.ts, test-runner.ts)
+13. [ ] 執行互動式驗證 ← **下一步**
+14. [ ] Phase 4: 對比基礎設施 (benchmark-runner, metrics-collector)
+15. [ ] Phase 4: 執行對比並產生報告
 
 ### Phase 2 完成狀態
 
 | 模組 | 行數 | 狀態 |
 |------|------|------|
 | `devtools-core.ts` | 281 | ✅ 完成 |
-| `wait-utils.ts` | 284 | ✅ 完成 |
+| `wait-utils.ts` | 325 | ✅ 完成 |
 | `navigation.ts` | 220 | ✅ 完成 |
 | `mode-switching.ts` | 250 | ✅ 完成 |
-| `trajectory-utils.ts` | 265 | ✅ 完成 |
+| `trajectory-utils.ts` | 352 | ✅ 完成 |
 | `trajectory-reload.ts` | 164 | ✅ 完成 |
 | `loft-list.ts` | 259 | ✅ 完成 |
-| **總計** | **1,723** | **100%** |
+| **總計** | **1,851** | **100%** |
+
+### Phase 3 完成狀態 (含重構)
+
+| 測試案例 | 行數 | 狀態 |
+|---------|------|------|
+| `shared/test-types.ts` | 63 | ✅ 完成 |
+| `shared/test-runner.ts` | 120 | ✅ 完成 |
+| `tc-02-001-2d-static.devtools.ts` | 219 | ✅ 完成 |
+| `tc-03-001-mode-switch.devtools.ts` | 300 | ✅ 完成 |
+| `tc-04-001-3d-mode.devtools.ts` | 392 | ✅ 完成 |
+| **總計** | **1,094** | **100%** |
+
+**重構成果**：
+- 消除重複的 `TestContext` 定義 (DRY)
+- 建立 `BaseTestRunner` 基礎類別
+- 統一測試結果型別
 
 ## 已知風險
 

@@ -1,0 +1,164 @@
+{
+  "metrics": {
+    "speed": {
+      "playwright": 92543,
+      "devtools": 72467,
+      "difference": "21.7% faster",
+      "winner": "devtools"
+    },
+    "stability": {
+      "playwright": {
+        "passRate": 100,
+        "totalRuns": 15,
+        "passed": 15,
+        "failed": 0
+      },
+      "devtools": {
+        "passRate": 100,
+        "totalRuns": 15,
+        "passed": 15,
+        "failed": 0
+      }
+    },
+    "codeComplexity": {
+      "playwright": {
+        "totalLines": 625,
+        "files": 3,
+        "avgLinesPerFile": 208
+      },
+      "devtools": {
+        "totalLines": 2957,
+        "files": 12,
+        "avgLinesPerFile": 246
+      },
+      "increase": "+373.1%"
+    },
+    "uniqueFeatures": {
+      "playwright": [
+        "HTML 報告 (內建)",
+        "錄影功能 (自動)",
+        "Trace Viewer",
+        "截圖 (自動失敗時)",
+        "平行測試執行",
+        "CI/CD 整合"
+      ],
+      "devtools": [
+        "效能追蹤 (Performance Trace)",
+        "網路請求詳情",
+        "Console 訊息存取",
+        "DOM 快照 (a11y 樹)",
+        "即時除錯",
+        "JavaScript 執行"
+      ]
+    },
+    "collectedAt": "2025-12-02T04:09:32.272Z"
+  },
+  "benchmarkSummary": {
+    "config": {
+      "iterations": 1,
+      "warmupRuns": 0,
+      "projectRoot": "/Users/tf/Downloads/PIGEON_RACING_TEST_PROJECT",
+      "testSuites": [
+        {
+          "name": "TC-02-001 (2D 靜態)",
+          "playwrightPath": "tests/e2e/tc-02-001-2d-static.spec.ts",
+          "devtoolsPath": "tests/e2e-devtools/tc-02-001-2d-static.devtools.ts"
+        },
+        {
+          "name": "TC-03-001 (模式切換)",
+          "playwrightPath": "tests/e2e/tc-03-001-mode-switch.spec.ts",
+          "devtoolsPath": "tests/e2e-devtools/tc-03-001-mode-switch.devtools.ts"
+        },
+        {
+          "name": "TC-04-001 (3D 模式)",
+          "playwrightPath": "tests/e2e/tc-04-001-3d-mode.spec.ts",
+          "devtoolsPath": "tests/e2e-devtools/tc-04-001-3d-mode.devtools.ts"
+        }
+      ]
+    },
+    "playwrightResults": [
+      {
+        "framework": "playwright",
+        "testSuite": "TC-02-001 (2D 靜態)",
+        "durations": [
+          62060
+        ],
+        "avgDuration": 62060,
+        "minDuration": 62060,
+        "maxDuration": 62060,
+        "passed": 3,
+        "failed": 0,
+        "timestamp": "2025-12-02T03:30:00.000Z"
+      },
+      {
+        "framework": "playwright",
+        "testSuite": "TC-03-001 (模式切換)",
+        "durations": [
+          116990
+        ],
+        "avgDuration": 116990,
+        "minDuration": 116990,
+        "maxDuration": 116990,
+        "passed": 5,
+        "failed": 0,
+        "timestamp": "2025-12-02T03:32:00.000Z"
+      },
+      {
+        "framework": "playwright",
+        "testSuite": "TC-04-001 (3D 模式)",
+        "durations": [
+          98580
+        ],
+        "avgDuration": 98580,
+        "minDuration": 98580,
+        "maxDuration": 98580,
+        "passed": 7,
+        "failed": 0,
+        "timestamp": "2025-12-02T03:34:00.000Z"
+      }
+    ],
+    "devtoolsResults": [
+      {
+        "framework": "devtools",
+        "testSuite": "TC-02-001 (2D 靜態)",
+        "durations": [
+          60000
+        ],
+        "avgDuration": 60000,
+        "minDuration": 60000,
+        "maxDuration": 60000,
+        "passed": 3,
+        "failed": 0,
+        "timestamp": "2025-12-02T03:54:25.363Z"
+      },
+      {
+        "framework": "devtools",
+        "testSuite": "TC-03-001 (模式切換)",
+        "durations": [
+          63500
+        ],
+        "avgDuration": 63500,
+        "minDuration": 63500,
+        "maxDuration": 63500,
+        "passed": 5,
+        "failed": 0,
+        "timestamp": "2025-12-02T03:55:47.566Z"
+      },
+      {
+        "framework": "devtools",
+        "testSuite": "TC-04-001 (3D 模式)",
+        "durations": [
+          93900
+        ],
+        "avgDuration": 93900,
+        "minDuration": 93900,
+        "maxDuration": 93900,
+        "passed": 7,
+        "failed": 0,
+        "timestamp": "2025-12-02T03:57:39.515Z"
+      }
+    ],
+    "executedAt": "2025-12-02T04:09:32.270Z"
+  },
+  "generatedAt": "2025-12-02T04:09:32.306Z"
+}

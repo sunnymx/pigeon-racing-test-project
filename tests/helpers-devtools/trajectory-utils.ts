@@ -17,6 +17,7 @@ import {
   generateReadPopupScript,
 } from './devtools-core';
 import { delay } from './wait-utils';
+import { TrajectoryData } from '../shared/validators';
 
 /** 軌跡標記選擇器 */
 const MARKER_SELECTOR = '.amap-icon > img';
@@ -262,4 +263,90 @@ export async function getWaypointCountFromDetails(ctx: TrajectoryContext): Promi
   const count = await ctx.evaluateScript(script) as number;
   console.log(`[trajectory] 詳情面板顯示 ${count} 個航點`);
   return count;
+}
+
+/**
+ * 提取側邊欄軌跡數據
+ *
+ * 對應 Playwright 版本的 verifyTrajectoryData()
+ *
+ * @param ctx - 軌跡工具上下文
+ * @returns 軌跡數據
+ */
+export async function verifyTrajectoryData(ctx: TrajectoryContext): Promise<TrajectoryData> {
+  // 先嘗試打開軌跡詳情面板
+  const openPanelScript = `
+    () => {
+      const btn = document.querySelector('button[mattooltip="軌跡詳情"]');
+      if (btn && btn.offsetParent !== null) {
+        btn.click();
+        return true;
+      }
+      return false;
+    }
+  `;
+  const opened = await ctx.evaluateScript(openPanelScript);
+  if (opened) {
+    await delay(1000);
+    console.log('[trajectory] 已打開軌跡詳情面板');
+  }
+
+  // 提取所有軌跡數據
+  const extractScript = `
+    () => {
+      const data = {
+        ringNumber: '',
+        startTime: '',
+        endTime: '',
+        duration: '',
+        avgSpeed: 0,
+        maxSpeed: 0,
+        avgAltitude: 0,
+        maxAltitude: 0,
+        actualDistance: 0,
+        straightDistance: 0
+      };
+
+      // 提取公环号
+      const ringEl = document.querySelector('.detail-text');
+      if (ringEl) {
+        const match = ringEl.textContent?.match(/\\d{2}-\\d{7}/);
+        if (match) data.ringNumber = match[0];
+      }
+
+      // 輔助函數：提取欄位值
+      function extractField(label) {
+        const elements = document.querySelectorAll('div');
+        for (let i = 0; i < elements.length - 1; i++) {
+          const el = elements[i];
+          const text = el.textContent?.trim() || '';
+          if (text.startsWith(label) && text.length < 50) {
+            const next = elements[i + 1];
+            if (next && !next.textContent?.includes(label)) {
+              return next.textContent?.trim() || '';
+            }
+          }
+        }
+        return '';
+      }
+
+      // 提取各欄位
+      data.startTime = extractField('起点时间');
+      data.endTime = extractField('终点时间');
+      data.duration = extractField('持续时间');
+      data.avgSpeed = parseFloat(extractField('平均分速')) || 0;
+      data.maxSpeed = parseFloat(extractField('最高分速')) || 0;
+      data.avgAltitude = parseFloat(extractField('平均高度')) || 0;
+      data.maxAltitude = parseFloat(extractField('最大高度')) || 0;
+      data.actualDistance = parseFloat(extractField('实际距离')) || 0;
+      data.straightDistance = parseFloat(extractField('直线距离')) || 0;
+
+      return data;
+    }
+  `;
+
+  const trajectoryData = await ctx.evaluateScript(extractScript) as TrajectoryData;
+
+  console.log('[trajectory] ✓ 軌跡數據提取完成', trajectoryData);
+  return trajectoryData;
 }

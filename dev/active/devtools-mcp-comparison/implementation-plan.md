@@ -2,7 +2,7 @@
 
 **建立日期**: 2025-11-28
 **最後更新**: 2025-12-01
-**狀態**: ✅ Phase 2 完成 (100%)，Phase 3 待開始
+**狀態**: ✅ Phase 3 完成 (100%)，Phase 4 待開始
 
 ---
 
@@ -17,20 +17,23 @@
 ```
 tests/
 ├── helpers/                      # 現有 Playwright (保留不動)
-├── helpers-devtools/             # 新建 DevTools MCP 版本
-│   ├── devtools-core.ts          # DevTools 核心工具 (~150 行)
-│   ├── navigation.ts             # (~180 行)
-│   ├── mode-switching.ts         # (~250 行)
-│   ├── wait-utils.ts             # (~200 行)
-│   ├── trajectory-utils.ts       # (~280 行)
-│   ├── trajectory-reload.ts      # (~180 行)
-│   └── loft-list.ts              # (~200 行)
+├── helpers-devtools/             # 新建 DevTools MCP 版本 ✅
+│   ├── devtools-core.ts          # DevTools 核心工具 (281 行)
+│   ├── navigation.ts             # (220 行)
+│   ├── mode-switching.ts         # (250 行)
+│   ├── wait-utils.ts             # (325 行)
+│   ├── trajectory-utils.ts       # (352 行)
+│   ├── trajectory-reload.ts      # (164 行)
+│   └── loft-list.ts              # (259 行)
 ├── e2e/                          # 現有 Playwright 測試
-├── e2e-devtools/                 # 新建 DevTools MCP 測試
-│   ├── tc-02-001-2d-static.devtools.ts
-│   ├── tc-03-001-mode-switch.devtools.ts
-│   └── tc-04-001-3d-mode.devtools.ts
-├── comparison/                   # 對比基礎設施
+├── e2e-devtools/                 # 新建 DevTools MCP 測試 ✅
+│   ├── shared/
+│   │   ├── test-types.ts         # 共用型別 (63 行)
+│   │   └── test-runner.ts        # 基礎執行器 (120 行)
+│   ├── tc-02-001-2d-static.devtools.ts    # (219 行)
+│   ├── tc-03-001-mode-switch.devtools.ts  # (300 行)
+│   └── tc-04-001-3d-mode.devtools.ts      # (392 行)
+├── comparison/                   # 對比基礎設施 (待建立)
 │   ├── benchmark-runner.ts
 │   ├── metrics-collector.ts
 │   └── report-generator.ts
@@ -85,13 +88,16 @@ tests/
 
 **Phase 2 總計**: 1,723 行 (預估 1,290 行) - 含 devtools-core 281 行
 
-### Phase 3: 測試轉換 (2-3 天)
+### Phase 3: 測試轉換 (2-3 天) ✅ 完成
 
-| 順序 | 測試案例 | 預估行數 |
-|------|----------|----------|
-| 3.1 | TC-02-001 (2D 靜態) | ~150 |
-| 3.2 | TC-03-001 (模式切換) | ~200 |
-| 3.3 | TC-04-001 (3D 模式) | ~220 |
+| 順序 | 測試案例 | 預估行數 | 實際行數 | 狀態 |
+|------|----------|----------|----------|------|
+| 3.0 | 共用模組 (test-types.ts, test-runner.ts) | - | 183 | ✅ |
+| 3.1 | TC-02-001 (2D 靜態) | ~150 | 219 | ✅ |
+| 3.2 | TC-03-001 (模式切換) | ~200 | 300 | ✅ |
+| 3.3 | TC-04-001 (3D 模式) | ~220 | 392 | ✅ |
+
+**Phase 3 總計**: 1,094 行 (預估 570 行)
 
 ### Phase 4: 對比與報告 (2 天)
 
@@ -127,15 +133,15 @@ tests/
 
 ---
 
-## 7. 預估工作量
+## 7. 預估 vs 實際工作量
 
-| 階段 | 天數 | 程式碼行數 |
-|------|------|-----------|
-| 基礎建設 | 2 | ~400 |
-| Helper 轉換 | 3-5 | ~1,290 |
-| 測試轉換 | 2-3 | ~570 |
-| 對比報告 | 2 | ~350 |
-| **總計** | **10 天** | **~2,610 行** |
+| 階段 | 預估天數 | 預估行數 | 實際行數 | 狀態 |
+|------|----------|----------|----------|------|
+| 基礎建設 | 2 | ~400 | 260 | ✅ |
+| Helper 轉換 | 3-5 | ~1,290 | 1,851 | ✅ |
+| 測試轉換 | 2-3 | ~570 | 1,094 | ✅ |
+| 對比報告 | 2 | ~350 | - | ⏳ |
+| **總計** | **10 天** | **~2,610** | **3,205+** |
 
 ---
 
@@ -153,8 +159,8 @@ tests/
 ## 9. 成功標準
 
 ### 最低標準
-- [ ] 所有 3 個 P0 測試案例轉換並通過
-- [ ] 所有 7 個 Helper 模組轉換完成
+- [x] 所有 3 個 P0 測試案例轉換並通過
+- [x] 所有 7 個 Helper 模組轉換完成
 - [ ] 收集所有測試案例的對比指標
 - [ ] 產生最終對比報告
 

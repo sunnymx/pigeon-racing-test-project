@@ -282,3 +282,44 @@ export async function retryAsync<T>(
 
   throw new Error(`[ERROR] 重試 ${retries} 次後仍失敗：${lastError?.message}`);
 }
+
+/**
+ * 網路請求資訊接口
+ */
+interface NetworkRequest {
+  url: string;
+  status?: number;
+  method?: string;
+}
+
+/**
+ * 等待軌跡數據 API 響應
+ *
+ * 對應 Playwright 版本的 waitForTrajectoryData()
+ * 使用 list_network_requests 輪詢檢查 ugetPigeonAllJsonInfo API
+ *
+ * @param listNetworkRequestsFn - 列出網路請求的函數
+ * @param timeout - 超時時間（毫秒）
+ * @returns 是否成功接收到數據
+ */
+export async function waitForTrajectoryData(
+  listNetworkRequestsFn: () => Promise<NetworkRequest[]>,
+  timeout: number = 10000
+): Promise<boolean> {
+  console.log('[WAIT] 等待軌跡數據 API 響應...');
+  const API_PATTERN = /ugetPigeonAllJsonInfo/;
+
+  const result = await waitForApiResponse(
+    listNetworkRequestsFn,
+    API_PATTERN,
+    timeout
+  );
+
+  if (result) {
+    console.log('[OK] 軌跡數據 API 響應成功');
+  } else {
+    console.warn('[WARN] 軌跡數據 API 響應等待超時');
+  }
+
+  return result;
+}
