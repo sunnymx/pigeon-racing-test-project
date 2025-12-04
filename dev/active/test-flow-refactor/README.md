@@ -127,15 +127,26 @@ tests/support/
 
 ## ⏭️ 下一步
 
+### 已完成
 1. ✅ ~~專家審查計劃~~ (完成 2025-12-02)
 2. ✅ ~~建立開發規格~~ (完成 2025-12-02)
 3. ✅ ~~建立軌跡驗證規格~~ (完成 2025-12-03)
 4. ✅ ~~建立開發執行指南~~ (完成 2025-12-04)
-5. ⏳ 實作 adaptive-wait.ts
-6. ⏳ 實作 console-monitor.ts
-7. ⏳ 實作 trajectory-validator.ts
-8. ⏳ 實作 stage-context.ts
-9. ⏳ 建立 user-journey.spec.ts
-10. ⏳ 執行驗證
+5. ✅ ~~建立雙方案架構~~ (完成 2025-12-04)
+
+### Phase 1: DevTools MCP 方案
+6. ⏳ 實作 tests/devtools/adaptive-wait.md
+7. ⏳ 實作 tests/devtools/console-monitor.md
+8. ⏳ 實作 tests/devtools/trajectory-validator.md
+9. ⏳ 實作 tests/devtools/stage-context.md
+10. ⏳ 實作 tests/devtools/user-journey.md
+
+### Phase 2: Playwright 方案
+11. ⏳ 實作 tests/helpers/adaptive-wait.ts
+12. ⏳ 實作 tests/helpers/console-monitor.ts
+13. ⏳ 實作 tests/helpers/trajectory-validator.ts
+14. ⏳ 實作 tests/helpers/stage-context.ts
+15. ⏳ 建立 tests/e2e/user-journey.spec.ts
+16. ⏳ 執行驗證
 
 📖 **開發執行指南**: [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)
