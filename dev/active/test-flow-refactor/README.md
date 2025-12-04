@@ -1,7 +1,7 @@
 # 測試流程重構計劃
 
 **建立日期**: 2025-11-27
-**最後更新**: 2025-12-03
+**最後更新**: 2025-12-04
 **狀態**: ✅ 計劃已審查，待實作
 **專家評分**: 7.75/10
 
@@ -18,13 +18,15 @@
 ```
 dev/active/test-flow-refactor/
 ├── README.md                       # 本文件 (索引)
+├── IMPLEMENTATION_GUIDE.md         # 開發執行指南 ⭐ NEW
 ├── user-journey-test-plan.md       # 完整計劃文件
-├── expert-review-report.md         # 專家審查報告 ⭐ NEW
+├── expert-review-report.md         # 專家審查報告
+├── USER_JOURNEY_RECORD.md          # 使用者歷程記錄
 └── specs/                          # 開發規格
     ├── stage-context.spec.md       # 階段上下文管理規格
     ├── adaptive-wait.spec.md       # 適應性等待規格
     ├── console-monitor.spec.md     # 控制台監控規格
-    └── trajectory-validator.spec.md # 軌跡資料驗證規格 ⭐ NEW
+    └── trajectory-validator.spec.md # 軌跡資料驗證規格
 ```
 
 ---
@@ -112,12 +114,14 @@ tests/support/
 
 | 文件 | 說明 |
 |------|------|
+| [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md) | **開發執行指南** ⭐ 開發入口 |
 | [user-journey-test-plan.md](./user-journey-test-plan.md) | 完整計劃文件 |
 | [expert-review-report.md](./expert-review-report.md) | 專家審查報告 |
+| [USER_JOURNEY_RECORD.md](./USER_JOURNEY_RECORD.md) | 使用者歷程記錄 |
 | [specs/stage-context.spec.md](./specs/stage-context.spec.md) | 階段上下文規格 |
 | [specs/adaptive-wait.spec.md](./specs/adaptive-wait.spec.md) | 適應性等待規格 |
 | [specs/console-monitor.spec.md](./specs/console-monitor.spec.md) | 控制台監控規格 |
-| [specs/trajectory-validator.spec.md](./specs/trajectory-validator.spec.md) | 軌跡資料驗證規格 ⭐ NEW |
+| [specs/trajectory-validator.spec.md](./specs/trajectory-validator.spec.md) | 軌跡資料驗證規格 |
 
 ---
 
@@ -126,9 +130,12 @@ tests/support/
 1. ✅ ~~專家審查計劃~~ (完成 2025-12-02)
 2. ✅ ~~建立開發規格~~ (完成 2025-12-02)
 3. ✅ ~~建立軌跡驗證規格~~ (完成 2025-12-03)
-4. ⏳ 實作 stage-context.ts
+4. ✅ ~~建立開發執行指南~~ (完成 2025-12-04)
 5. ⏳ 實作 adaptive-wait.ts
 6. ⏳ 實作 console-monitor.ts
 7. ⏳ 實作 trajectory-validator.ts
-8. ⏳ 建立 user-journey.spec.ts
-9. ⏳ 執行驗證
+8. ⏳ 實作 stage-context.ts
+9. ⏳ 建立 user-journey.spec.ts
+10. ⏳ 執行驗證
+
+📖 **開發執行指南**: [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)
