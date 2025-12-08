@@ -16,7 +16,7 @@
 - 軌跡標記可能缺失
 
 ### 快速解決
-**方法 1 (推薦)**: 重新加載軌跡
+**唯一有效方法**: 重新加載軌跡
 ```typescript
 // 重新執行「選擇鴿子 → 查看軌跡」流程
 // 1. 返回鴿子列表
@@ -31,16 +31,7 @@ await page.getByRole('button', { name: '查看軌跡' }).click();
 await page.waitForTimeout(3000);
 ```
 
-**方法 2 (備選)**: 使用 3D→2D 切換序列
-```typescript
-// 1. 先進入 3D 模式
-await page.getByRole('button', { name: '查看軌跡' }).click();
-await page.waitForTimeout(2000);
-
-// 2. 切換到 2D
-await page.getByRole('button', { name: '2d 2D模式' }).click();
-await page.waitForTimeout(2000);
-```
+⚠️ **注意**: 3D→2D 切換或靜態/動態切換**無法**解決此問題，必須回到軌跡列表重新選取鴿子。
 
 📖 完整方案：[Known Issues #1](../test-plan/KNOWN_ISSUES_SOLUTIONS.md#問題-1-2d軌跡初次加載失敗)
 

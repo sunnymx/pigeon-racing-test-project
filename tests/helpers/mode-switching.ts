@@ -125,14 +125,14 @@ export async function ensureModeByText(
  * ⚠️ 重要：此函數僅執行基本的模式切換，不解決「首次載入失敗」問題
  * 如果遇到 gpx2d undefined 錯誤，請使用 trajectory-reload.ts 中的 reload2DTrajectory()
  *
- * 已知問題 #1 推薦解決方案：重新加載軌跡（見 trajectory-reload.ts）
- * 備選方案：3D→2D 切換序列（較不推薦，見 troubleshooting.md 方法 2）
+ * 已知問題 #1 唯一有效解決方案：重新加載軌跡（見 trajectory-reload.ts）
+ * ⚠️ 3D→2D 切換或靜態/動態切換無法解決此問題
  *
  * @param page - Playwright Page 物件
  * @throws 如果切換失敗
  *
  * 參考：
- * - docs/test-plan/KNOWN_ISSUES_SOLUTIONS.md#問題-1 (方法1 推薦)
+ * - docs/test-plan/KNOWN_ISSUES_SOLUTIONS.md#問題-1
  * - docs/guides/troubleshooting.md#問題-1
  */
 export async function switchTo2DReliably(page: Page): Promise<void> {

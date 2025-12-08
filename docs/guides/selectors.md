@@ -7,7 +7,26 @@
 
 ---
 
-## 選擇器用途對照表
+## 首頁 UI 選擇器
+
+| 用途 | 選擇器 | 說明 | 範例用法 |
+|-----|-------|------|---------|
+| **搜尋框** | `textbox[name="搜寻赛事"]` | 首頁賽事搜尋 | `page.getByRole('textbox', { name: '搜寻赛事' })` |
+| **年份下拉選單** | `mat-select` | 年份篩選 | `page.locator('mat-select')` |
+| **賽事卡片** | `mat-card` | 賽事列表項 | `page.locator('mat-card')` |
+| **進入按鈕** | `button:has-text("進入")` | 進入賽事詳情 | `page.getByRole('button', { name: /進入\|进入/ })` |
+
+⚠️ **等待策略**: 首頁搜尋框需等待賽事列表載入後才可用：
+```typescript
+// ✅ 正確方式：先等待頁面載入
+await page.goto('/', { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('mat-card', { timeout: 10000 });
+await page.getByRole('textbox', { name: '搜寻赛事' }).fill('2024');
+```
+
+---
+
+## 軌跡視圖選擇器對照表
 
 | 用途 | 選擇器 | 說明 | 範例用法 |
 |-----|-------|------|---------|
@@ -16,6 +35,51 @@
 | **地圖容器** | `.amap-container` | 2D 模式檢測 | `page.locator('.amap-container')` |
 | **Timeline 按鈕** | `button:has(img[alt="timeline"])` | 靜態/動態切換 | `page.locator('button:has(img[alt="timeline"])')` |
 | **3D 視角按鈕** | `button:has-text("視角1")` | 3D 模式檢測 | `page.getByRole('button', { name: /視角1/ })` |
+
+---
+
+## 🎮 播放控制選擇器 (2025-12-05)
+
+### 2D 動態模式播放控制
+
+| 用途 | 選擇器 | description 屬性 | 範例用法 |
+|-----|-------|-----------------|---------|
+| **播放按鈕** | `button:has-text("play_arrow")` | `播放` 或 `播放/暂停` | `page.getByRole('button').filter({ hasText: 'play_arrow' })` |
+| **暫停按鈕** | `button:has-text("pause")` | `暫停` 或 `播放/暂停` | `page.getByRole('button').filter({ hasText: 'pause' })` |
+| **進度滑桿** | `mat-slider` | - | `page.locator('mat-slider')` |
+
+**檢測方式**:
+```typescript
+// ✅ 使用 innerText 檢測按鈕狀態
+const playButton = page.getByRole('button').filter({ hasText: 'play_arrow' });
+const pauseButton = page.getByRole('button').filter({ hasText: 'pause' });
+
+// 判斷當前狀態
+const isPlaying = await pauseButton.isVisible().catch(() => false);
+const isPaused = await playButton.isVisible().catch(() => false);
+```
+
+### 3D 模式速度控制
+
+| 用途 | 選擇器 | aria-label | 範例用法 |
+|-----|-------|-----------|---------|
+| **減速按鈕** | `button:has-text("fast_rewind")` | `減速` 或 `减速` | `page.getByRole('button').filter({ hasText: 'fast_rewind' })` |
+| **加速按鈕** | `button:has-text("fast_forward")` | `加速` | `page.getByRole('button').filter({ hasText: 'fast_forward' })` |
+| **播放/暫停** | `button:has-text("play_arrow")` | `播放` | `page.getByRole('button').filter({ hasText: 'play_arrow' })` |
+| **速度顯示** | `span.speed-display` | - | `page.locator('span.speed-display')` |
+
+**檢測方式**:
+```typescript
+// ✅ 使用 Material Icon 文字檢測
+const speedDown = page.getByRole('button').filter({ hasText: 'fast_rewind' });
+const speedUp = page.getByRole('button').filter({ hasText: 'fast_forward' });
+
+// 驗證按鈕存在
+await expect(speedDown).toBeVisible({ timeout: 5000 });
+await expect(speedUp).toBeVisible({ timeout: 5000 });
+```
+
+⚠️ **注意**: 3D 速度控制按鈕僅在 3D 動態播放模式下可見。
 
 ---
 
@@ -116,6 +180,12 @@ if (markerCount >= 15) {
 ---
 
 ## 版本變更歷史
+
+### 2025-12-05
+- **新增首頁 UI 選擇器**: 搜尋框、年份選單、賽事卡片、進入按鈕
+- **新增播放控制選擇器**: 2D 動態模式播放/暫停按鈕
+- **新增 3D 速度控制選擇器**: 減速/加速按鈕 (fast_rewind/fast_forward)
+- **來源**: DevTools MCP 測試驗證
 
 ### 2025-11-26
 - **軌跡標記點選擇器更新**: `[title*="2025-"]` → `.amap-icon > img`

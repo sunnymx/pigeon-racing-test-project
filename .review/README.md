@@ -4,23 +4,9 @@
 
 | 步驟 | 終端機 | 命令 |
 |------|--------|------|
-| 1 | Claude Code | `/request-review` |
-| 2 | Codex/Gemini | 依建議類型執行審查（見下方） |
+| 1 | Claude Code | `/request-review [code\|security\|architecture\|spec]` |
+| 2 | Codex/Gemini | `讀取 .review/prompts/{type}-review.md 並執行` |
 | 3 | Claude Code | `/review-result` |
-
-### 多審查類型執行方式
-
-當 `request.md` 建議多種審查類型時（如 `code + architecture`），請**依序執行**：
-
-```bash
-# 步驟 2a：代碼審查
-讀取 .review/prompts/code-review.md 並執行
-
-# 步驟 2b：架構審查
-讀取 .review/prompts/architecture-review.md 並執行
-```
-
-> 每個審查會輸出獨立的結果檔（如 `response_codex.md`、`response_gemini.md`），`/review-result` 會自動讀取所有結果。
 
 ---
 
@@ -34,6 +20,7 @@
 /request-review                          # 自動分析變更
 /request-review security                 # 指定安全審查
 /request-review code 請注意 edge case    # 附加關注點
+/request-review spec                     # 規格一致性審查
 ```
 
 **執行內容**：
@@ -53,8 +40,8 @@
 ```
 
 **執行內容**：
-1. 讀取 `.review/response_*.md`（所有審查結果）
-2. 按優先順序處理問題
+1. 讀取所有 `.review/response_{type}_{agent}.md`（如 `response_code_codex.md`、`response_spec_gemini.md`）
+2. 合併多 Agent 結果，按優先順序處理問題
 3. 輸出處理報告
 4. 詢問是否需要再次審查
 
@@ -71,7 +58,7 @@
 
 ### 步驟 2：啟動審查（Codex/Gemini 終端機）
 
-根據 `request.md` 建議的審查類型執行。若建議多種類型，請**依序執行**：
+跟審查 Agent 說（選擇其一）：
 
 **代碼審查**：
 ```
@@ -88,13 +75,16 @@
 讀取 .review/prompts/architecture-review.md 並執行
 ```
 
-> 提示：若 `request.md` 建議 `code + architecture`，請先執行代碼審查，再執行架構審查。
+**規格審查**：
+```
+讀取 .review/prompts/spec-review.md 並執行
+```
 
 ### 步驟 3：應用修正（Claude Code 終端機）
 
 跟 Claude Code 說：
 ```
-讀取 .review/response_*.md 的審查結果，評估並修正問題
+讀取 .review/response_{type}_{agent}.md 的審查結果，評估並修正問題
 ```
 
 ---
@@ -104,10 +94,11 @@
 | 檔案 | 用途 | 誰寫入 |
 |------|------|--------|
 | `request.md` | 變更摘要 | 開發 Agent |
-| `response_{agent}.md` | 審查結果（如 `response_codex.md`） | 審查 Agent |
+| `response_{type}_{agent}.md` | 審查結果（如 `response_code_codex.md`） | 審查 Agent |
 | `prompts/code-review.md` | 代碼品質審查 prompt | - |
 | `prompts/security-review.md` | 安全審查 prompt | - |
 | `prompts/architecture-review.md` | 架構審查 prompt | - |
+| `prompts/spec-review.md` | 規格審查 prompt | - |
 
 ---
 
@@ -120,6 +111,8 @@
 | 安全相關 | security-review |
 | 重構 | architecture-review |
 | API 變更 | code-review + security-review |
+| 規格/欄位變更 | spec-review |
+| 新增功能欄位 | code-review + spec-review |
 
 ---
 
@@ -134,5 +127,5 @@ cat .review/request.md
 
 # 查看審查結果
 ls .review/response_*.md
-cat .review/response_codex.md  # 或其他 agent
+cat .review/response_code_codex.md  # 或其他 type_agent 組合
 ```

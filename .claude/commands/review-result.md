@@ -8,13 +8,28 @@ argument-hint: [--fix-all | --must-only | --discuss]
 ## 步驟 1：讀取審查結果
 
 1. 列出所有審查結果檔案：`ls .review/response_*.md`
-2. 讀取所有 `response_{agent}.md` 檔案（如 `response_codex.md`、`response_gemini.md`）
+2. 讀取所有 `response_{type}_{agent}.md` 檔案，格式為：
+   - `response_code_{agent}.md` — 代碼審查結果
+   - `response_security_{agent}.md` — 安全審查結果
+   - `response_architecture_{agent}.md` — 架構審查結果
+   - `response_spec_{agent}.md` — 規格審查結果
 3. 解析每個檔案的以下內容：
    - **審查狀態**：approved / changes_requested / needs_discussion
    - **問題清單**：Must Fix / Should Fix / Discussion
    - **詳細說明**
 
-> 註：Security 審查使用 Critical/High/Medium/Low 分級
+> **Security 審查分級映射**：
+> - Critical / High → Must Fix
+> - Medium → Should Fix
+> - Low → Discussion
+
+### 多結果合併策略
+
+當有多個審查結果時（不同類型或不同 Agent）：
+1. **審查狀態**：任一結果為 `changes_requested` 則整體為 `changes_requested`
+2. **問題去重**：相同問題只處理一次，標注來源（類型 + Agent）
+3. **優先順序**：Must Fix > Should Fix > Discussion
+4. **處理順序建議**：code → security → architecture → spec
 
 ## 步驟 2：處理邏輯
 

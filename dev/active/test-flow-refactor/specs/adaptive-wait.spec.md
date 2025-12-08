@@ -151,6 +151,10 @@ export const WAIT_STRATEGIES = {
 
   /**
    * 等待 3D 模式 (Cesium) 初始化
+   *
+   * 注意：window.Cesium 和 window.viewer 在此網站不可用（未暴露至全局）
+   * 改用 DOM 元素檢測，已於 2025-12-05 透過 DevTools MCP 驗證
+   * 參考：tests/devtools/adaptive-wait.md
    */
   cesium3DReady: async (page: Page, options: WaitOptions = {}): Promise<WaitResult> => {
     const { timeout = 30000 } = options;
@@ -158,19 +162,13 @@ export const WAIT_STRATEGIES = {
 
     try {
       await Promise.all([
-        // Cesium 全局物件
-        page.waitForFunction(
-          () => (window as any).Cesium !== undefined,
-          { timeout }
-        ),
+        // Cesium 容器 DOM 元素
+        page.waitForSelector('.cesium-viewer', { timeout }),
 
-        // Viewer 實例
-        page.waitForFunction(
-          () => (window as any).viewer !== undefined,
-          { timeout }
-        ),
+        // Cesium widget DOM 元素
+        page.waitForSelector('.cesium-widget', { timeout }),
 
-        // 視角按鈕可見
+        // 視角按鈕可見（3D 模式特有控制項）
         page.getByRole('button', { name: /[视視]角1/ }).waitFor({
           state: 'visible',
           timeout,

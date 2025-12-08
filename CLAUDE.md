@@ -151,7 +151,7 @@ Automated testing project for a pigeon racing GPS tracking system (https://skyra
 
 ### Known Issues Quick Reference
 
-1. **2D trajectory initial load failure** → Reload trajectory by re-selecting pigeon (or use 3D→2D switch as fallback)
+1. **2D trajectory initial load failure** → Reload trajectory by re-selecting pigeon (3D→2D switch does NOT work)
 2. **Static/Dynamic mode confusion** → Count marker points (≥15 static vs <5 dynamic)
 3. **Trajectory point click unresponsive** → Use `.amap-icon > img` selector with `force: true`
 4. **Data loading timing** → Wait 2-3 seconds after switches

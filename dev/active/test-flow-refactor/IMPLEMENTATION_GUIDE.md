@@ -157,12 +157,12 @@ trajectory-validator ─┘ (獨立使用)
 | 項目 | 狀態 | 完成日期 | 備註 |
 |------|------|----------|------|
 | `tests/devtools/` 資料夾 | ✅ 完成 | 2025-12-04 | 含 README.md |
-| `adaptive-wait.md` | ⏳ 待開發 | - | - |
-| `console-monitor.md` | ⏳ 待開發 | - | - |
-| `trajectory-validator.md` | ⏳ 待開發 | - | - |
-| `stage-context.md` | ⏳ 待開發 | - | - |
-| `user-journey.md` | ⏳ 待開發 | - | - |
-| **7 階段流程驗證** | ⏳ 待驗證 | - | - |
+| `adaptive-wait.md` | ✅ 完成 | 2025-12-05 | 已驗證並更新規格 |
+| `console-monitor.md` | ✅ 完成 | 2025-12-05 | 已驗證，建議新增白名單項目 |
+| `trajectory-validator.md` | ✅ 完成 | 2025-12-05 | 摘要提取+策略A/B通過，航點需靜態模式 |
+| `stage-context.md` | ✅ 完成 | 2025-12-05 | 5 功能全部驗證通過，含模式檢測修正 |
+| `user-journey.md` | ✅ 完成 | 2025-12-05 | 7 階段 36 驗證點腳本已建立 |
+| **7 階段流程驗證** | ⏳ 待驗證 | - | 使用 DevTools MCP 執行 |
 
 ### Phase 2: Playwright 方案
 

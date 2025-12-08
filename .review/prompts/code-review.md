@@ -35,7 +35,7 @@
 
 ## 步驟 3：輸出報告
 
-將審查結果寫入 `.review/response_{你的名稱}.md`（如 `response_codex.md`），格式如下：
+將審查結果寫入 `.review/response_code_{你的名稱}.md`（如 `response_code_codex.md`），格式如下：
 
 1. **審查狀態**：approved / changes_requested / needs_discussion
 2. **問題清單**：按嚴重程度分類
@@ -66,4 +66,4 @@
 
 ---
 
-執行指令：讀取 .review/request.md，執行 git diff，然後將審查結果寫入 `.review/response_{你的名稱}.md`（如 `response_codex.md`、`response_gemini.md`）
+執行指令：讀取 .review/request.md，執行 git diff，然後將審查結果寫入 `.review/response_code_{你的名稱}.md`（如 `response_code_codex.md`、`response_code_gemini.md`）
