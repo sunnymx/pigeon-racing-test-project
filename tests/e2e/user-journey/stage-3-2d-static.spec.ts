@@ -13,6 +13,7 @@
 import { test, expect } from '@playwright/test';
 import { setupTrajectoryView, setup2DStaticWithMarkers, DEFAULT_TIMEOUT } from './fixtures';
 import { WAIT_STRATEGIES } from '../../helpers/adaptive-wait';
+import { getTrajectoryPointsCount } from '../../helpers/trajectory-utils';
 
 test.describe('階段 3: 2D 靜態軌跡 @P0', () => {
   test.beforeEach(async ({ page }) => {
@@ -40,14 +41,16 @@ test.describe('階段 3: 2D 靜態軌跡 @P0', () => {
   test('3.4 軌跡標記點', async ({ page }) => {
     await setupTrajectoryView(page);
 
-    const wait = await WAIT_STRATEGIES.trajectoryMarkersReady(page, 3);
+    // 使用與 TC-02-001 相同的驗證方法
+    const pointsCount = await getTrajectoryPointsCount(page);
 
-    // Known Issue #1: 標記點可能需要重選鴿子才會顯示
-    if (!wait.success) {
-      console.log('⚠️ 3.4 軌跡標記點: Known Issue #1 - 標記點未顯示，這是預期行為');
+    // 靜態模式應該 >= 15 個標記點（與 TC-02-001 一致）
+    // 但首次載入可能較少，至少要有 3 個
+    if (pointsCount < 3) {
+      console.log(`⚠️ 3.4 軌跡標記點: Known Issue #1 - 僅 ${pointsCount} 個標記點`);
     }
 
-    expect(wait.success).toBe(true);
+    expect(pointsCount).toBeGreaterThanOrEqual(3);
   });
 
   test('3.5 資訊彈窗', async ({ page }) => {

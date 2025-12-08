@@ -13,6 +13,8 @@
 
 import { test, expect } from '@playwright/test';
 import { setupTrajectoryView, setup2DDynamicMode, DEFAULT_TIMEOUT } from './fixtures';
+import { switchSubMode2D } from '../../helpers/mode-switching';
+import { getTrajectoryPointsCount } from '../../helpers/trajectory-utils';
 
 test.describe('階段 4: 2D 動態模式 @P0', () => {
   test.beforeEach(async ({ page }) => {
@@ -36,8 +38,18 @@ test.describe('階段 4: 2D 動態模式 @P0', () => {
   test('4.2 播放按鈕', async ({ page }) => {
     await setup2DDynamicMode(page);
 
-    const btn = page.getByRole('button').filter({ hasText: 'play_arrow' }).first();
-    await expect(btn).toBeVisible();
+    // 動態模式可能自動播放，需同時檢查 play_arrow 和 pause
+    const playButton = page.getByRole('button').filter({ hasText: 'play_arrow' }).first();
+    const pauseButton = page.getByRole('button').filter({ hasText: 'pause' }).first();
+
+    const isPlaying = await pauseButton.isVisible().catch(() => false);
+
+    if (isPlaying) {
+      console.log('  ℹ️ 動態模式已自動播放，顯示 pause');
+      await expect(pauseButton).toBeVisible();
+    } else {
+      await expect(playButton).toBeVisible();
+    }
   });
 
   test('4.3 暫停按鈕', async ({ page }) => {
@@ -84,15 +96,14 @@ test.describe('階段 4: 2D 動態模式 @P0', () => {
   test('4.7 靜態切回', async ({ page }) => {
     await setup2DDynamicMode(page);
 
-    // 切回靜態模式
-    const btn = page.locator('button:has-text("靜態"), button:has-text("place")').first();
-    if (await btn.isVisible()) {
-      await btn.click();
-    }
-    await page.waitForTimeout(2000);
+    // 使用與 TC-03-001 相同的切換方法
+    await switchSubMode2D(page, 'static');
 
-    // 靜態模式應有較多標記點
-    const markers = await page.locator('.amap-icon > img').count();
-    expect(markers).toBeGreaterThanOrEqual(3);
+    // 驗證靜態模式標記點數量（與 TC-03-001 一致）
+    const pointsCount = await getTrajectoryPointsCount(page);
+    console.log(`  靜態模式標記點數量：${pointsCount}`);
+
+    // 靜態模式應 >= 15 個標記點
+    expect(pointsCount).toBeGreaterThanOrEqual(15);
   });
 });

@@ -7,6 +7,8 @@
 import { Page } from '@playwright/test';
 import { WAIT_STRATEGIES } from '../../helpers/adaptive-wait';
 import { reload2DTrajectory } from '../../helpers/trajectory-reload';
+import { enterRace, selectPigeon, setPreferredMode, openTrajectory } from '../../helpers/navigation';
+import { ensureModeByText } from '../../helpers/mode-switching';
 
 // ============================================================================
 // 常量定義
@@ -67,42 +69,22 @@ export async function setupRaceEntry(page: Page): Promise<void> {
 // ============================================================================
 
 /**
- * 設置 2D 軌跡視圖 - 勾選鴿子並查看軌跡
+ * 設置 2D 軌跡視圖 - 使用與 TC-02-001 相同的方法
+ *
+ * 關鍵：使用 reload2DTrajectory 處理 Known Issue #1
  */
 export async function setupTrajectoryView(page: Page): Promise<TestState> {
   const state = createInitialState();
 
-  await setupRaceEntry(page);
+  // 使用與 TC-02-001 相同的流程
+  await enterRace(page, 0);
 
-  // 勾選第一隻鴿子
-  const rows = page.locator('table tbody tr, table tr');
-  const checkbox = rows.nth(1).getByRole('checkbox');
-  if (await checkbox.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await checkbox.click();
-    await page.waitForTimeout(1000);
-  }
+  // 使用 reload2DTrajectory 處理 Known Issue #1
+  // 此方法會：選擇鴿子 → 設定2D偏好 → 查看軌跡 → 驗證載入
+  const loadSuccess = await reload2DTrajectory(page, 0, 3);
+
   state.pigeonIndex = 0;
-
-  // 點擊「查看軌跡」按鈕
-  const viewBtn = page.getByRole('button', { name: /查看[轨軌][迹跡]/ });
-  if (await viewBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await viewBtn.click();
-  }
-  await page.waitForTimeout(NAVIGATION_TIMEOUT);
-
-  // 等待 2D 地圖載入
-  let wait = await WAIT_STRATEGIES.amap2DReady(page);
-
-  // Known Issue #1 恢復機制
-  if (!wait.success) {
-    console.log('⚠️ 2D 載入失敗，嘗試 reload2DTrajectory 恢復...');
-    const reloaded = await reload2DTrajectory(page, state.pigeonIndex, 2);
-    if (reloaded) {
-      wait = await WAIT_STRATEGIES.amap2DReady(page);
-    }
-  }
-
-  state.trajectory2DLoaded = wait.success;
+  state.trajectory2DLoaded = loadSuccess;
   state.currentMode = '2D';
   state.subMode = 'static';
 
@@ -129,13 +111,14 @@ export async function setup2DStaticWithMarkers(page: Page): Promise<TestState> {
 // ============================================================================
 
 /**
- * 設置 2D 動態模式
+ * 設置 2D 動態模式 - 使用與 TC-03-001 相同的方法
  */
 export async function setup2DDynamicMode(page: Page): Promise<TestState> {
   const state = await setupTrajectoryView(page);
 
-  // 切換到動態模式
-  const dynamicBtn = page.locator('button:has-text("timeline"), button:has-text("動態")').first();
+  // 確保在 2D 模式（setupTrajectoryView 已處理）
+  // 使用 Material Icon 選擇器切換到動態模式
+  const dynamicBtn = page.getByRole('button').filter({ hasText: 'timeline' });
   if (await dynamicBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
     await dynamicBtn.click();
     await page.waitForTimeout(2000);
@@ -150,16 +133,13 @@ export async function setup2DDynamicMode(page: Page): Promise<TestState> {
 // ============================================================================
 
 /**
- * 設置 3D 模式
+ * 設置 3D 模式 - 使用與 TC-04-001 相同的方法
  */
 export async function setup3DMode(page: Page): Promise<TestState> {
   const state = await setupTrajectoryView(page);
 
-  // 切換到 3D 模式
-  const btn3D = page.getByRole('button', { name: /3D模式/ });
-  if (await btn3D.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await btn3D.click();
-  }
+  // 使用可靠的 3D 切換方法（與 TC-04-001 一致）
+  await ensureModeByText(page, '3D');
 
   // 等待 Cesium 載入
   const wait = await WAIT_STRATEGIES.cesium3DReady(page);

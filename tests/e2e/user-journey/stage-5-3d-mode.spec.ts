@@ -13,6 +13,7 @@
 import { test, expect } from '@playwright/test';
 import { setup3DMode, setupTrajectoryView, DEFAULT_TIMEOUT } from './fixtures';
 import { WAIT_STRATEGIES } from '../../helpers/adaptive-wait';
+import { switchTo3DReliably } from '../../helpers/mode-switching';
 
 test.describe('階段 5: 3D 模式 @P0', () => {
   test.beforeEach(async ({ page }) => {
@@ -22,9 +23,11 @@ test.describe('階段 5: 3D 模式 @P0', () => {
   test('5.1 3D 切換', async ({ page }) => {
     await setupTrajectoryView(page);
 
-    await page.getByRole('button', { name: /3D模式/ }).click();
-    const wait = await WAIT_STRATEGIES.cesium3DReady(page);
+    // 使用與 TC-04-001 相同的可靠切換方法
+    await switchTo3DReliably(page);
 
+    // 驗證 Cesium 已就緒
+    const wait = await WAIT_STRATEGIES.cesium3DReady(page);
     expect(wait.success).toBe(true);
   });
 
