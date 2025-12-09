@@ -16,20 +16,59 @@ const isCI = !!process.env.CI;
 
 // CI 環境的超時和重試配置
 const CI_CONFIG = {
-  maxRetries: 3,           // CI 最多重試 3 次（確保數據加載）
-  dataLoadWait: 8000,      // CI 數據加載等待 8 秒（增加）
+  maxRetries: 3,           // CI 最多重試 3 次
+  dataLoadWait: 5000,      // CI 數據加載等待 5 秒（輪詢會補足）
   shortWait: 1500,         // CI 短等待 1.5 秒
-  markerWait: 15000,       // CI 標記點等待 15 秒（大幅增加）
+  markerTimeout: 30000,    // 輪詢最大等待 30 秒
+  markerInterval: 500,     // 每 500ms 檢查一次
 };
 
 const LOCAL_CONFIG = {
   maxRetries: 3,           // 本地最多重試 3 次
-  dataLoadWait: 3000,      // 本地數據加載等待 3 秒
+  dataLoadWait: 2000,      // 本地數據加載等待 2 秒
   shortWait: 500,          // 本地短等待 0.5 秒
-  markerWait: 3000,        // 本地標記點等待 3 秒
+  markerTimeout: 10000,    // 輪詢最大等待 10 秒
+  markerInterval: 300,     // 每 300ms 檢查一次
 };
 
 const CONFIG = isCI ? CI_CONFIG : LOCAL_CONFIG;
+
+/**
+ * 輪詢等待標記點加載
+ * 比固定延遲更可靠，能適應不同網路條件
+ *
+ * @param page - Playwright Page 物件
+ * @param minCount - 最少需要的標記點數量
+ * @param timeout - 最大等待時間（毫秒）
+ * @param interval - 輪詢間隔（毫秒）
+ * @returns 實際標記點數量
+ */
+async function waitForMarkers(
+  page: Page,
+  minCount: number = 1,
+  timeout: number = 30000,
+  interval: number = 500
+): Promise<number> {
+  const startTime = Date.now();
+  let markerCount = 0;
+
+  console.log(`  ⏳ 輪詢等待標記點 (至少 ${minCount} 個, 最長 ${timeout / 1000}s)...`);
+
+  while (Date.now() - startTime < timeout) {
+    markerCount = await page.locator('.amap-icon > img').count();
+
+    if (markerCount >= minCount) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.log(`  ✓ 標記點已加載: ${markerCount} 個 (${elapsed}s)`);
+      return markerCount;
+    }
+
+    await page.waitForTimeout(interval);
+  }
+
+  console.warn(`  ⚠️ 輪詢超時，當前標記點: ${markerCount}`);
+  return markerCount;
+}
 
 /**
  * 重新加載 2D 軌跡數據
@@ -146,34 +185,27 @@ export async function reload2DTrajectory(
         console.log('  ✓ 已切換到 2D 模式');
       }
 
-      // CI 環境額外等待標記點加載
-      if (isCI) {
-        console.log('  ⏳ CI 環境：等待標記點加載...');
-        await page.waitForTimeout(CONFIG.markerWait);
-      }
+      // 步驟7: 輪詢等待標記點加載（CI 和本地都使用）
+      // 用輪詢替代固定延遲，自適應網路條件
+      const markerCount = await waitForMarkers(
+        page,
+        1,  // 至少需要 1 個標記點
+        CONFIG.markerTimeout,
+        CONFIG.markerInterval
+      );
 
-      // 步驟7: 驗證 2D 地圖加載
-      // ⚠️ 重要更新 (2025-11-26)：
-      // 舊方法使用 .amap-container img 計數，但現代高德地圖 (AMap v2.0+)
-      // 使用 Canvas 渲染而非 <img> 標籤，導致該方法失效。
-      // 新方法：檢查 Canvas 元素 + 地圖容器可見性 + 軌跡標記點
-
+      // 步驟8: 驗證 2D 地圖加載
       // 檢查 Canvas 圖層（軌跡線渲染）
       const canvas = await page.locator('canvas.amap-layer').count();
 
-      // 檢查地圖容器可見性（更可靠）
+      // 檢查地圖容器可見性
       const mapContainerVisible = await page.locator('.amap-container').isVisible().catch(() => false);
 
       // 檢查 2D 特有 UI 元素（timeline 按鈕）
       const timelineVisible = await page.getByRole('button').filter({ hasText: 'timeline' }).isVisible().catch(() => false);
 
-      // 新增：檢查軌跡標記點數量
-      // DOM 結構：div > .amap-icon > img（由 codegen 確認）
-      const markerCount = await page.locator('.amap-icon > img').count();
-
-      // CI 環境也需要至少 1 個標記點（軌跡功能依賴標記存在）
-      // 增加了 markerWait 時間 (15s) 確保標記點有足夠時間加載
-      const markerRequired = 1;  // CI 和本地都要求至少 1 個標記
+      // 標記點要求：至少 1 個
+      const markerRequired = 1;
 
       if ((canvas > 0 || mapContainerVisible) && timelineVisible && markerCount >= markerRequired) {
         console.log(`✅ 2D 軌跡加載成功！`);
