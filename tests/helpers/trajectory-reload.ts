@@ -97,11 +97,21 @@ export async function reload2DTrajectory(
       if (!isTableVisible) {
         console.log('  ⚠️ 當前不在鴿子列表，嘗試導航返回...');
 
-        // 嘗試找到返回按鈕（支援多種可能的文字）
-        const backButton = page.getByRole('button', { name: /返回|關閉|close|back|×/i }).first();
+        // 如果 mat-drawer 打開（overlay 模式），先點擊 backdrop 關閉
+        const drawerBackdrop = page.locator('.mat-drawer-backdrop');
+        if (await drawerBackdrop.isVisible().catch(() => false)) {
+          console.log('  ⚠️ 偵測到 drawer 打開，點擊 backdrop 關閉...');
+          await drawerBackdrop.click();
+          await page.waitForTimeout(500);
+        }
+
+        // 返回按鈕是 hamburger menu icon（Material Icon: "menu"）
+        // 根據用戶錄製：點擊 menu 按鈕可直接返回鴿子列表
+        // 使用 force: true 避免被 overlay 元素攔截
+        const backButton = page.getByRole('button').filter({ hasText: 'menu' }).first();
 
         if (await backButton.isVisible().catch(() => false)) {
-          await backButton.click();
+          await backButton.click({ force: true });
           await page.waitForTimeout(CONFIG.shortWait * 2);
           console.log('  ✓ 已點擊返回按鈕');
         } else {
