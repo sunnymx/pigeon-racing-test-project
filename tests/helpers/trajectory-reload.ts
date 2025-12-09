@@ -16,10 +16,10 @@ const isCI = !!process.env.CI;
 
 // CI 環境的超時和重試配置
 const CI_CONFIG = {
-  maxRetries: 2,           // CI 最多重試 2 次（減少總時間）
-  dataLoadWait: 5000,      // CI 數據加載等待 5 秒
-  shortWait: 1000,         // CI 短等待 1 秒
-  markerWait: 8000,        // CI 標記點等待 8 秒
+  maxRetries: 3,           // CI 最多重試 3 次（確保數據加載）
+  dataLoadWait: 8000,      // CI 數據加載等待 8 秒（增加）
+  shortWait: 1500,         // CI 短等待 1.5 秒
+  markerWait: 15000,       // CI 標記點等待 15 秒（大幅增加）
 };
 
 const LOCAL_CONFIG = {
@@ -171,9 +171,9 @@ export async function reload2DTrajectory(
       // DOM 結構：div > .amap-icon > img（由 codegen 確認）
       const markerCount = await page.locator('.amap-icon > img').count();
 
-      // CI 環境放寬標記檢查：只要 canvas + timeline 存在即可
-      // 因為 CI 環境標記點可能加載較慢，但不影響基本功能驗證
-      const markerRequired = isCI ? 0 : 1;  // CI 允許標記為 0
+      // CI 環境也需要至少 1 個標記點（軌跡功能依賴標記存在）
+      // 增加了 markerWait 時間 (15s) 確保標記點有足夠時間加載
+      const markerRequired = 1;  // CI 和本地都要求至少 1 個標記
 
       if ((canvas > 0 || mapContainerVisible) && timelineVisible && markerCount >= markerRequired) {
         console.log(`✅ 2D 軌跡加載成功！`);
@@ -181,9 +181,6 @@ export async function reload2DTrajectory(
         console.log(`   - 地圖容器可見: ${mapContainerVisible}`);
         console.log(`   - Timeline 按鈕可見: ${timelineVisible}`);
         console.log(`   - 軌跡標記點: ${markerCount}`);
-        if (isCI && markerCount === 0) {
-          console.log(`   ⚠️ CI 環境：標記點尚未加載，但基本結構已就緒`);
-        }
         return true;
       } else {
         console.warn(
