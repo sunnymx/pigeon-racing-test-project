@@ -12,9 +12,10 @@ export default defineConfig({
   testDir: './tests/e2e',
 
   // 測試超時設定（因地圖渲染需時較長）
-  timeout: 60 * 1000,           // 單一測試 60 秒
+  // CI 環境網路較慢，需要更長的超時時間
+  timeout: process.env.CI ? 180 * 1000 : 60 * 1000,  // CI 3分鐘, 本地 1分鐘
   expect: {
-    timeout: 10 * 1000,          // 斷言超時 10 秒
+    timeout: process.env.CI ? 20 * 1000 : 10 * 1000,  // CI 20秒, 本地 10秒
   },
 
   // 失敗處理
@@ -42,8 +43,9 @@ export default defineConfig({
     trace: 'retain-on-failure',
 
     // 導航超時（地圖瓦片載入需時）
-    navigationTimeout: 30 * 1000,
-    actionTimeout: 10 * 1000,
+    // CI 環境網路較慢，需要更長的超時時間
+    navigationTimeout: process.env.CI ? 60 * 1000 : 30 * 1000,  // CI 60秒, 本地 30秒
+    actionTimeout: process.env.CI ? 20 * 1000 : 10 * 1000,      // CI 20秒, 本地 10秒
 
     // 視窗大小（確保地圖有足夠空間渲染）
     viewport: { width: 1920, height: 1080 },
