@@ -1,7 +1,7 @@
 /**
  * fixtures.ts - 共用測試設定和 setup 函數
  *
- * 簡化版：僅包含首頁測試所需函數
+ * 支援記錄點 #01, #02 測試
  * 完整版參考：tests/archive/e2e/user-journey/fixtures.ts
  */
 
@@ -26,5 +26,17 @@ export const NAVIGATION_TIMEOUT = 3000;
  */
 export async function setupHomepage(page: Page): Promise<void> {
   await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(NAVIGATION_TIMEOUT);
+}
+
+/**
+ * 設置賽事頁 - 點擊「進入」按鈕進入賽事詳情
+ *
+ * 對應規格：USER_JOURNEY_RECORD #02
+ */
+export async function setupRaceEntry(page: Page): Promise<void> {
+  await setupHomepage(page);
+  // 支援簡繁體：进入/進入
+  await page.getByRole('button', { name: /进入|進入/ }).first().click();
   await page.waitForTimeout(NAVIGATION_TIMEOUT);
 }

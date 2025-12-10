@@ -22,7 +22,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: npx playwright test tc-01-001
+        run: npx playwright test tc-01-001 tc-02-001
         continue-on-error: true
 
       - name: Upload HTML report
