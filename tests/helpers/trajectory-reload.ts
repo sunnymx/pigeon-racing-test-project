@@ -174,7 +174,26 @@ export async function reload2DTrajectory(
 
       console.log(`  ✓ 已選擇鴿子 #${pigeonIndex}（勾選清單：${match[1]}）`);
 
-      // 步驟4: 點擊查看軌跡（支援簡繁體）
+      // 步驟4: 確保 2D 偏好被選中（關鍵！否則會進入 3D 模式）
+      // 檢查「查看軌跡」按鈕旁邊的 2D/3D 切換開關
+      // 如果當前是 3D（紅色標籤），需要點擊切換到 2D
+      const toggle3D = page.getByRole('button', { name: '3D', exact: true });
+      if (await toggle3D.isVisible().catch(() => false)) {
+        // 檢查 3D 是否被選中（mat-button-toggle-checked 類）
+        const is3DSelected = await toggle3D.evaluate((el) =>
+          el.classList.contains('mat-button-toggle-checked')
+        ).catch(() => false);
+
+        if (is3DSelected) {
+          console.log('  ⚠️ 當前為 3D 偏好，切換到 2D...');
+          const toggle2D = page.getByRole('button', { name: '2D', exact: true });
+          await toggle2D.click();
+          await page.waitForTimeout(300);
+          console.log('  ✓ 已切換到 2D 偏好');
+        }
+      }
+
+      // 步驟5: 點擊查看軌跡（支援簡繁體）
       const viewButton = page.getByRole('button', { name: /查看[轨軌][迹跡]/ });
       await viewButton.click();
       console.log('  ✓ 已點擊查看軌跡');
