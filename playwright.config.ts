@@ -50,8 +50,8 @@ export default defineConfig({
     // 視窗大小（確保地圖有足夠空間渲染）
     viewport: { width: 1920, height: 1080 },
 
-    // 使用系統安裝的 Chrome，以避開 macOS 對 Playwright 下載版 headless_shell 的權限限制
-    channel: 'chrome',
+    // 本地使用系統 Chrome，CI 使用 Playwright 內建 Chromium
+    ...(process.env.CI ? {} : { channel: 'chrome' }),
 
     // 關閉 crashpad 相關行為，避免 macOS 權限阻擋造成瀏覽器啟動失敗
     launchOptions: {
