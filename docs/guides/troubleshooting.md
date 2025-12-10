@@ -19,8 +19,20 @@
 **唯一有效方法**: 重新加載軌跡
 ```typescript
 // 重新執行「選擇鴿子 → 查看軌跡」流程
-// 1. 返回鴿子列表
-await page.getByRole('button', { name: /返回|關閉/ }).click();
+
+// 0. ⚠️ 確保 2D 偏好被選中（關鍵！否則會進入 3D 模式）
+const toggle3D = page.getByRole('button', { name: '3D', exact: true });
+if (await toggle3D.isVisible()) {
+  const is3DSelected = await toggle3D.evaluate((el) =>
+    el.classList.contains('mat-button-toggle-checked')
+  );
+  if (is3DSelected) {
+    await page.getByRole('button', { name: '2D', exact: true }).click();
+  }
+}
+
+// 1. 返回鴿子列表（使用 menu 按鈕）
+await page.getByRole('button').filter({ hasText: 'menu' }).first().click({ force: true });
 
 // 2. 取消之前的選擇
 await page.locator('input[type="checkbox"]:checked').first().click();
@@ -30,6 +42,8 @@ await page.locator('input[type="checkbox"]').first().click();
 await page.getByRole('button', { name: '查看軌跡' }).click();
 await page.waitForTimeout(3000);
 ```
+
+💡 **推薦**: 使用 `reload2DTrajectory()` helper 函數，已內建所有修復邏輯。
 
 ⚠️ **注意**: 3D→2D 切換或靜態/動態切換**無法**解決此問題，必須回到軌跡列表重新選取鴿子。
 

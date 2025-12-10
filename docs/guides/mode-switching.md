@@ -228,6 +228,47 @@ if (await switch3DButton.isVisible() && view1Exists === 0) {
 
 ## 自動化測試實作
 
+### 🚨 關鍵：確保 2D 偏好被選中 (2025-12-10 新增)
+
+在點擊「查看軌跡」前，必須確保 2D/3D 偏好按鈕選中正確的模式！
+
+**問題背景**：
+- 「查看軌跡」按鈕旁邊有 2D/3D 切換開關
+- 如果是 3D 偏好（紅色標籤），點擊「查看軌跡」會進入 Cesium 3D 模式
+- 3D 模式沒有 `.amap-icon` 標記點，導致 2D 測試失敗
+
+**解決方案 - 檢查並設定 2D 偏好**：
+
+```typescript
+// 在點擊「查看軌跡」前，確保 2D 偏好被選中
+async function ensure2DPreference(page: Page): Promise<void> {
+  const toggle3D = page.getByRole('button', { name: '3D', exact: true });
+
+  if (await toggle3D.isVisible().catch(() => false)) {
+    // 檢查 3D 是否被選中
+    const is3DSelected = await toggle3D.evaluate((el) =>
+      el.classList.contains('mat-button-toggle-checked')
+    ).catch(() => false);
+
+    if (is3DSelected) {
+      console.log('⚠️ 當前為 3D 偏好，切換到 2D...');
+      const toggle2D = page.getByRole('button', { name: '2D', exact: true });
+      await toggle2D.click();
+      await page.waitForTimeout(300);
+    }
+  }
+}
+
+// 使用示例
+await selectPigeon(page, 0);
+await ensure2DPreference(page);  // ← 關鍵步驟！
+await page.getByRole('button', { name: '查看軌跡' }).click();
+```
+
+**推薦方式**：使用 `reload2DTrajectory()` helper 函數，已內建此邏輯。
+
+---
+
 ### Helper 函數: ensureModeByText()
 
 ```typescript

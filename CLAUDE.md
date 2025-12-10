@@ -116,14 +116,21 @@ Automated testing project for a pigeon racing GPS tracking system (https://skyra
 
 **CRITICAL**: There are **THREE different types of buttons** - don't confuse them!
 
-#### Button Type 1: Preference Selector (選擇鴿子畫面)
-**Location**: Next to "查看軌跡" button when selecting pigeons (red badge showing "3D")
+#### Button Type 1: Preference Selector (選擇鴿子畫面) ⚠️ CRITICAL FOR AUTOMATION
+**Location**: Next to "查看軌跡" button when selecting pigeons (badge showing "2D" or "3D")
 **Purpose**: Sets which mode will be used when clicking "查看軌跡"
 **Behavior**:
 - This is a **preference setting**
 - Can be toggled freely
 - Only affects **next** trajectory view, NOT current map
 - ❌ Do NOT use this to switch current map mode
+
+**🚨 AUTOMATION CRITICAL (2025-12-10)**:
+- **問題**：如果偏好是 3D，點擊「查看軌跡」會進入 Cesium 3D 模式
+- **後果**：2D 測試會失敗，因為 `.amap-icon` 標記點永遠為 0
+- **解決**：在點擊「查看軌跡」前，確保 2D 偏好被選中
+- **實現**：使用 `reload2DTrajectory()` 或 `setPreferredMode(page, '2D')`
+- **選擇器**：`getByRole('button', { name: '2D', exact: true })`
 
 #### Button Type 2: Map Mode Switcher (地圖功能選單) ⭐ PRIMARY
 **Location**: In trajectory view's map control panel
