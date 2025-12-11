@@ -46,88 +46,101 @@ export async function setupRaceEntry(page: Page): Promise<void> {
  *
  * 對應規格：USER_JOURNEY_RECORD #03
  * 處理已知問題 #1: 2D 軌跡初次加載失敗，使用重試機制
+ * 參考實現：tests/archive/helpers/trajectory-reload.ts
  */
 export async function setup2DTrajectory(page: Page): Promise<void> {
-  const maxRetries = process.env.CI ? 3 : 2;
-  const maxWait = process.env.CI ? 30000 : 15000;
+  const isCI = !!process.env.CI;
+  const maxRetries = isCI ? 3 : 2;
+  const maxWait = isCI ? 45000 : 15000; // CI 延長到 45 秒
   const pollInterval = 500;
+  const shortWait = isCI ? 1500 : 500;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
-    // 確保在賽事頁面
-    if (attempt === 0) {
-      await setupRaceEntry(page);
-    } else {
-      // 重試時返回鴿子列表
-      const backButton = page.getByRole('button').filter({ hasText: 'menu' }).first();
-      if (await backButton.isVisible().catch(() => false)) {
-        await backButton.click({ force: true });
-        await page.waitForTimeout(1500);
+    try {
+      // 確保在賽事頁面
+      if (attempt === 0) {
+        await setupRaceEntry(page);
+      } else {
+        // 重試時返回鴿子列表
+        // 先關閉可能打開的 drawer（參考 archive）
+        const drawerBackdrop = page.locator('.mat-drawer-backdrop');
+        if (await drawerBackdrop.isVisible().catch(() => false)) {
+          await drawerBackdrop.click();
+          await page.waitForTimeout(500);
+        }
+
+        const backButton = page.getByRole('button').filter({ hasText: 'menu' }).first();
+        if (await backButton.isVisible().catch(() => false)) {
+          await backButton.click({ force: true });
+          await page.waitForTimeout(shortWait * 2);
+        }
+
+        // 確保表格出現
+        await page.waitForSelector('table tbody tr', { timeout: 10000 });
       }
-    }
 
-    // 取消之前的選擇
-    const checkedBox = page.locator('input[type="checkbox"]:checked').first();
-    if (await checkedBox.isVisible().catch(() => false)) {
-      await checkedBox.click();
-      await page.waitForTimeout(300);
-    }
+      // 取消之前的選擇
+      const checkedBox = page.locator('input[type="checkbox"]:checked').first();
+      if (await checkedBox.isVisible().catch(() => false)) {
+        await checkedBox.click();
+        await page.waitForTimeout(shortWait);
+      }
 
-    // 選擇第一隻鴿子
-    const checkbox = page.locator('table').getByRole('checkbox').first();
-    await checkbox.click();
-    await page.waitForTimeout(1000); // 等待按鈕狀態更新
+      // 選擇第一隻鴿子
+      const checkbox = page.locator('table').getByRole('checkbox').first();
+      await checkbox.click();
+      await page.waitForTimeout(shortWait);
 
-    // 確保 2D 偏好選中（關鍵！否則會進入 3D 模式）
-    // 注意：按鈕選擇鴿子後才會啟用，使用 force: true 跳過啟用檢查
-    const toggle2D = page.getByRole('button', { name: '2D', exact: true });
-    if (await toggle2D.isVisible().catch(() => false)) {
-      // 檢查是否需要切換（3D 選中時才需要點擊 2D）
+      // 確保 2D 偏好選中（關鍵！否則會進入 3D 模式）
       const toggle3D = page.getByRole('button', { name: '3D', exact: true });
-      const is3DSelected = await toggle3D.evaluate((el) =>
-        el.classList.contains('mat-button-toggle-checked')
-      ).catch(() => false);
-      if (is3DSelected) {
-        await toggle2D.click({ force: true });
-        await page.waitForTimeout(300);
-      }
-    }
-
-    // 點擊查看軌跡（使用 getByText 避免按鈕嵌套問題）
-    const viewText = page.getByText(/查看[轨軌][迹跡]/);
-    await viewText.click();
-
-    // 等待導航完成（地圖容器出現或 URL 變化）
-    await page.waitForTimeout(2000);
-
-    // 輪詢等待標記點加載（參考 archive/trajectory-reload.ts）
-    let elapsed = 0;
-    let markerCount = 0;
-    while (elapsed < maxWait) {
-      markerCount = await page.locator('.amap-icon > img').count();
-      // 同時檢查 timeline 按鈕和標記點
-      const timelineVisible = await page.getByRole('button')
-        .filter({ hasText: 'timeline' })
-        .isVisible()
-        .catch(() => false);
-      const mapVisible = await page.locator('.amap-container')
-        .isVisible()
-        .catch(() => false);
-
-      // 成功條件：(標記點 >= 15) 或 (標記點 >= 1 且 timeline 可見且地圖可見)
-      if (markerCount >= 15) {
-        await page.waitForTimeout(NAVIGATION_TIMEOUT);
-        return; // 完全加載成功
-      }
-      if (markerCount >= 1 && timelineVisible && mapVisible) {
-        await page.waitForTimeout(NAVIGATION_TIMEOUT);
-        return; // 部分加載但確認在 2D 模式
+      if (await toggle3D.isVisible().catch(() => false)) {
+        const is3DSelected = await toggle3D.evaluate((el) =>
+          el.classList.contains('mat-button-toggle-checked')
+        ).catch(() => false);
+        if (is3DSelected) {
+          const toggle2D = page.getByRole('button', { name: '2D', exact: true });
+          await toggle2D.click({ force: true });
+          await page.waitForTimeout(300);
+        }
       }
 
-      await page.waitForTimeout(pollInterval);
-      elapsed += pollInterval;
+      // 點擊查看軌跡（使用 getByText 避免按鈕嵌套問題）
+      const viewText = page.getByText(/查看[轨軌][迹跡]/);
+      await viewText.click();
+
+      // 等待頁面加載狀態（參考 archive）
+      await page.waitForLoadState(isCI ? 'domcontentloaded' : 'networkidle');
+      await page.waitForTimeout(isCI ? 5000 : 2000);
+
+      // 輪詢等待標記點加載
+      let elapsed = 0;
+      while (elapsed < maxWait) {
+        const markerCount = await page.locator('.amap-icon > img').count();
+        const timelineVisible = await page.getByRole('button')
+          .filter({ hasText: 'timeline' })
+          .isVisible()
+          .catch(() => false);
+        const mapVisible = await page.locator('.amap-container')
+          .isVisible()
+          .catch(() => false);
+
+        // 成功條件：標記點 >= 1 且 timeline 可見且地圖可見
+        if (markerCount >= 1 && timelineVisible && mapVisible) {
+          await page.waitForTimeout(NAVIGATION_TIMEOUT);
+          return; // 成功！
+        }
+
+        await page.waitForTimeout(pollInterval);
+        elapsed += pollInterval;
+      }
+      // 本次嘗試失敗，繼續下一次重試
+    } catch (error) {
+      if (attempt === maxRetries - 1) {
+        throw new Error(`2D 軌跡加載失敗，已重試 ${maxRetries} 次`);
+      }
     }
   }
 
-  // 最後一次嘗試後仍等待
-  await page.waitForTimeout(NAVIGATION_TIMEOUT);
+  // 所有重試都失敗
+  throw new Error(`2D 軌跡加載失敗，已重試 ${maxRetries} 次`);
 }
