@@ -99,28 +99,32 @@ export async function setup2DTrajectory(page: Page): Promise<void> {
     // 等待導航完成（地圖容器出現或 URL 變化）
     await page.waitForTimeout(2000);
 
-    // 輪詢等待標記點加載
+    // 輪詢等待標記點加載（參考 archive/trajectory-reload.ts）
     let elapsed = 0;
     let markerCount = 0;
     while (elapsed < maxWait) {
       markerCount = await page.locator('.amap-icon > img').count();
+      // 同時檢查 timeline 按鈕和標記點
+      const timelineVisible = await page.getByRole('button')
+        .filter({ hasText: 'timeline' })
+        .isVisible()
+        .catch(() => false);
+      const mapVisible = await page.locator('.amap-container')
+        .isVisible()
+        .catch(() => false);
+
+      // 成功條件：(標記點 >= 15) 或 (標記點 >= 1 且 timeline 可見且地圖可見)
       if (markerCount >= 15) {
         await page.waitForTimeout(NAVIGATION_TIMEOUT);
-        return; // 加載成功
+        return; // 完全加載成功
       }
+      if (markerCount >= 1 && timelineVisible && mapVisible) {
+        await page.waitForTimeout(NAVIGATION_TIMEOUT);
+        return; // 部分加載但確認在 2D 模式
+      }
+
       await page.waitForTimeout(pollInterval);
       elapsed += pollInterval;
-    }
-
-    // 檢查是否加載成功（即使不到 15 也驗證 timeline 按鈕）
-    const timelineVisible = await page.getByRole('button')
-      .filter({ hasText: 'timeline' })
-      .isVisible()
-      .catch(() => false);
-
-    if (markerCount >= 1 && timelineVisible) {
-      await page.waitForTimeout(NAVIGATION_TIMEOUT);
-      return; // 部分加載但在 2D 模式
     }
   }
 
