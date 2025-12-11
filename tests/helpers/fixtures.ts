@@ -13,7 +13,7 @@ import { switchSubMode2D } from './mode-switching';
 // 常量定義 - 統一等待時間策略
 // ============================================================================
 
-export const BASE_URL = 'https://skyracing.com.cn/';
+export const BASE_URL = 'https://hungdev.skyracing.com.cn/';
 export const DEFAULT_TIMEOUT = 60000;
 
 // 快速等待策略

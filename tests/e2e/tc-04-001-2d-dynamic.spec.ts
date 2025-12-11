@@ -106,25 +106,32 @@ test.describe('TC-04-001: 2D 動態模式 + 風場 @P0', () => {
       test.skip();
     }
 
-    // 點擊開啟風場
+    // 確保風場是關閉狀態（先開再關確保狀態一致）
+    await windFieldBtn.click();
+    await page.waitForTimeout(1000);
     await windFieldBtn.click();
     await page.waitForTimeout(2000);
 
-    // 驗證 Canvas 圖層存在（風場效果可能尚未實現，但按鈕功能應正常）
-    const canvas = page.locator('canvas.amap-layer');
-    const canvasVisible = await canvas.first().isVisible().catch(() => false);
+    // 截取風場關閉時的地圖截圖
+    const mapContainer = page.locator('.amap-container').first();
+    const screenshotBefore = await mapContainer.screenshot();
 
-    // 點擊關閉風場（還原狀態）
+    // 點擊開啟風場
+    await windFieldBtn.click();
+    await page.waitForTimeout(5000); // 等待風場渲染
+
+    // 截取風場開啟時的地圖截圖
+    const screenshotAfter = await mapContainer.screenshot();
+
+    // 比較截圖是否不同（風場開啟後視覺應有變化）
+    const isSameImage = screenshotBefore.equals(screenshotAfter);
+
+    // 關閉風場（還原狀態）
     await windFieldBtn.click();
     await page.waitForTimeout(500);
 
-    // 記錄實際結果
-    if (!canvasVisible) {
-      console.log('ℹ️ 4.6 風場開啟: Canvas 圖層存在，風場按鈕功能正常');
-    }
-
-    // 驗證按鈕可點擊即為成功（風場效果是否顯示取決於後端數據）
-    expect(hasWindField).toBe(true);
+    // 驗證：截圖應該不同（風場效果已載入）
+    expect(isSameImage).toBe(false);
   });
 
   test('4.7 靜態切回', async ({ page }) => {

@@ -59,7 +59,7 @@
 
 ### 記錄點 #01: 首頁 - 賽事列表 ✅
 
-**頁面 URL**: `https://skyracing.com.cn/`
+**頁面 URL**: `https://hungdev.skyracing.com.cn/`
 **頁面標題**: Skyracing GPS pigeon tracker
 
 #### 開發狀態

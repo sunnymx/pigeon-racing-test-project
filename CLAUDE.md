@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Automated testing project for a pigeon racing GPS tracking system (https://skyracing.com.cn/) using **Playwright MCP** for interactive browser automation. Currently in **documentation and planning phase** - automation implementation pending.
+Automated testing project for a pigeon racing GPS tracking system (https://hungdev.skyracing.com.cn/) using **Playwright MCP** for interactive browser automation. Currently in **documentation and planning phase** - automation implementation pending.
 
 ---
 
@@ -192,7 +192,7 @@ claude mcp list
 
 ```typescript
 // Navigate → Select → View Trajectory
-await page.goto('https://skyracing.com.cn/');
+await page.goto('https://hungdev.skyracing.com.cn/');
 await page.getByRole('button', { name: '進入' }).first().click();
 
 // Check mode button BEFORE selecting pigeon

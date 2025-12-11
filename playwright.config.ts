@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Playwright 配置檔 - 鴿子競賽GPS追蹤系統自動化測試
  *
  * 關鍵配置：
- * - 基礎 URL: https://skyracing.com.cn
+ * - 基礎 URL: https://hungdev.skyracing.com.cn
  * - 超時時間：因需等待地圖瓦片/Cesium 載入，設定較長超時
  * - 截圖策略：失敗時自動截圖
  */
@@ -33,7 +33,7 @@ export default defineConfig({
 
   // 全域設定
   use: {
-    baseURL: 'https://skyracing.com.cn',
+    baseURL: 'https://hungdev.skyracing.com.cn',
 
     // 截圖設定（解決 canvas 驗證問題）
     screenshot: 'only-on-failure',
