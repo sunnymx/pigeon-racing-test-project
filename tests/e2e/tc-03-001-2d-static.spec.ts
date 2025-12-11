@@ -23,7 +23,9 @@ import {
 
 test.describe('TC-03-001: 2D 靜態軌跡 + InfoWindow @P0', () => {
   test.beforeEach(async ({ page }) => {
-    test.setTimeout(DEFAULT_TIMEOUT * 2); // 軌跡載入需要更長時間
+    // CI 環境需要更長超時（重試機制 + 網路延遲）
+    const timeoutMultiplier = process.env.CI ? 5 : 2;
+    test.setTimeout(DEFAULT_TIMEOUT * timeoutMultiplier);
     await setup2DTrajectory(page);
   });
 
