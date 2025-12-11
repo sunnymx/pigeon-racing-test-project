@@ -7,6 +7,7 @@
  */
 
 import { Page } from '@playwright/test';
+import { switchSubMode2D } from './mode-switching';
 
 // ============================================================================
 // 常量定義 - 統一等待時間策略
@@ -159,6 +160,21 @@ async function quickCheckTrajectoryLoaded(page: Page): Promise<boolean> {
   }
 
   return false;
+}
+
+// ============================================================================
+// 2D 動態模式 Setup
+// ============================================================================
+
+/**
+ * 設置 2D 動態模式
+ *
+ * 前置條件：需要先完成 2D 軌跡加載
+ * 策略：setup2DTrajectory → switchSubMode2D('dynamic')
+ */
+export async function setup2DDynamicMode(page: Page): Promise<void> {
+  await setup2DTrajectory(page);
+  await switchSubMode2D(page, 'dynamic');
 }
 
 // 導出常量供測試使用
