@@ -17,7 +17,8 @@ export const DEFAULT_TIMEOUT = 60000;
 
 // 快速等待策略
 const QUICK_WAIT = 500;       // 基本操作等待
-const QUICK_CHECK = 5000;     // 快速檢查超時（5秒）
+const IS_CI = !!process.env.CI;
+const QUICK_CHECK = IS_CI ? 15000 : 5000;  // CI 給 15 秒首次等待
 const POLL_INTERVAL = 300;    // 輪詢間隔
 
 // ============================================================================
@@ -49,7 +50,7 @@ export async function setupRaceEntry(page: Page): Promise<void> {
  * 策略：5 秒內沒出現軌跡就立即重新選取，不浪費時間等待
  */
 export async function setup2DTrajectory(page: Page): Promise<void> {
-  const maxRetries = 5; // 多次快速重試
+  const maxRetries = IS_CI ? 3 : 5; // CI 給更長首次等待，減少重試
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
