@@ -8,6 +8,7 @@
 
 import { Page } from '@playwright/test';
 import { switchSubMode2D, switchTo3DReliably } from './mode-switching';
+import { openTrajectoryDetails } from './trajectory-details';
 
 // ============================================================================
 // 常量定義 - 統一等待時間策略
@@ -201,6 +202,30 @@ export async function setup3DTrajectory(page: Page): Promise<void> {
   if (IS_CI) {
     await page.waitForTimeout(3000);
   }
+}
+
+// ============================================================================
+// 軌跡詳情 Setup
+// ============================================================================
+
+/**
+ * 設置軌跡詳情面板
+ *
+ * 前置條件：需要先完成 2D 軌跡加載
+ * 策略：setup2DTrajectory → openTrajectoryDetails
+ *
+ * @param page - Playwright Page 物件
+ * @throws 如果軌跡詳情面板打開失敗
+ */
+export async function setupTrajectoryDetails(page: Page): Promise<void> {
+  // 先進入 2D 軌跡（確保數據載入）
+  await setup2DTrajectory(page);
+
+  // 打開軌跡詳情面板
+  await openTrajectoryDetails(page);
+
+  // 等待面板內容渲染
+  await page.waitForTimeout(QUICK_WAIT);
 }
 
 // 導出常量供測試使用
