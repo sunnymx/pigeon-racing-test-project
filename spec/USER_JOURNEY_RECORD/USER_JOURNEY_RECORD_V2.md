@@ -508,7 +508,7 @@ expect(report.passed).toBe(true);
 | Helper | `tests/helpers/multi-select.ts` |
 | 測試數量 | 5 個 (7.1~7.5) |
 | 本地測試 | ✅ 5/5 passed |
-| CI 測試 | 待部署 |
+| CI 測試 | ✅ 5/5 passed |
 | 完成日期 | 2025-12-12 |
 
 #### 開發備註
