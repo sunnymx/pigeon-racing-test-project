@@ -6,8 +6,8 @@
  * - 切換靜態/動態模式
  *
  * 模式判斷標準：
- * - 2D 靜態：標記點 ≥ 15 個
- * - 2D 動態：標記點 < 5 個
+ * - 2D 動態：有播放控制按鈕（pause 或 play_arrow）
+ * - 2D 靜態：無播放控制按鈕
  */
 
 import { Page } from '@playwright/test';
@@ -38,22 +38,24 @@ export async function detectCurrentViewMode(
     return '3D';
   }
 
-  // 檢查 2D 模式下的標記數量
-  const markerCount = await page.locator('.amap-icon > img').count();
+  // 檢查是否有 AMap 容器（確認在 2D）
+  const hasAMap = await page.locator('.amap-container').isVisible().catch(() => false);
+  if (!hasAMap) {
+    return 'unknown';
+  }
 
-  if (markerCount >= 15) {
-    return '2D-static';
-  } else if (markerCount > 0 && markerCount < 5) {
+  // 2D 動態模式判斷：檢查播放控制按鈕是否存在
+  const pauseButton = page.getByRole('button').filter({ hasText: 'pause' });
+  const playButton = page.getByRole('button').filter({ hasText: 'play_arrow' });
+
+  const hasPause = await pauseButton.isVisible().catch(() => false);
+  const hasPlay = await playButton.isVisible().catch(() => false);
+
+  if (hasPause || hasPlay) {
     return '2D-dynamic';
   }
 
-  // 檢查是否有 AMap 容器（確認在 2D）
-  const hasAMap = await page.locator('.amap-container').isVisible().catch(() => false);
-  if (hasAMap) {
-    return '2D-static'; // 預設回傳靜態
-  }
-
-  return 'unknown';
+  return '2D-static';
 }
 
 // ============================================================================
