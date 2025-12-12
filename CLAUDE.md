@@ -304,7 +304,7 @@ git remote -v
 **Phase 1: P0 Tests** (Critical - must pass)
 - TC-02-001: 2D static trajectory
 - TC-03-001: Static/dynamic switching
-- TC-04-001: 3D mode rendering
+- TC-04-001: 2D dynamic mode + wind field
 
 **Phase 2: P1 Tests** (Important)
 - Trajectory point interaction

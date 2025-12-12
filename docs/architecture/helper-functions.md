@@ -27,7 +27,7 @@
 |---------|------|-------|--------------|
 | **TC-02-001** | `tc-02-001-2d-static.spec.ts` | P0 | trajectory-reload, trajectory-utils |
 | **TC-03-001** | `tc-03-001-mode-switch.spec.ts` | P0 | mode-switching, navigation |
-| **TC-04-001** | `tc-04-001-3d-mode.spec.ts` | P0 | mode-switching, wait-utils |
+| **TC-04-001** | `tc-04-001-2d-dynamic.spec.ts` | P0 | fixtures, mode-switching, trajectory |
 
 ---
 
