@@ -19,7 +19,7 @@ export const DEFAULT_TIMEOUT = 60000;
 // 快速等待策略
 const QUICK_WAIT = 500;       // 基本操作等待
 const IS_CI = !!process.env.CI;
-const QUICK_CHECK = IS_CI ? 30000 : 5000;  // CI 給 30 秒等待（美國→中國延遲較高）
+const QUICK_CHECK = IS_CI ? 45000 : 5000;  // CI 給 45 秒等待（美國→中國延遲較高）
 const POLL_INTERVAL = 300;    // 輪詢間隔
 
 // ============================================================================
