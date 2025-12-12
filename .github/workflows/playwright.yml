@@ -1,7 +1,12 @@
 name: Playwright Tests
 
 on:
-  workflow_dispatch:  # 手動觸發
+  workflow_dispatch:
+    inputs:
+      test_filter:
+        description: '測試篩選 (例如: tc-06-001, 留空執行全部)'
+        required: false
+        default: ''
 
 jobs:
   test:
@@ -22,7 +27,14 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: npx playwright test
+        env:
+          TEST_FILTER: ${{ inputs.test_filter }}
+        run: |
+          if [ -n "$TEST_FILTER" ]; then
+            npx playwright test "$TEST_FILTER"
+          else
+            npx playwright test
+          fi
         continue-on-error: true
 
       - name: Upload HTML report
