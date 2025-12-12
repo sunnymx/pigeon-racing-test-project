@@ -7,7 +7,7 @@
  */
 
 import { Page } from '@playwright/test';
-import { switchSubMode2D } from './mode-switching';
+import { switchSubMode2D, switchTo3DReliably } from './mode-switching';
 
 // ============================================================================
 // 常量定義 - 統一等待時間策略
@@ -175,6 +175,32 @@ async function quickCheckTrajectoryLoaded(page: Page): Promise<boolean> {
 export async function setup2DDynamicMode(page: Page): Promise<void> {
   await setup2DTrajectory(page);
   await switchSubMode2D(page, 'dynamic');
+}
+
+// ============================================================================
+// 3D 模式 Setup
+// ============================================================================
+
+/**
+ * 設置 3D 軌跡模式
+ *
+ * 策略：先進入 2D 軌跡 → 切換到 3D 模式
+ * 原因：先確保軌跡數據載入成功，再切換到 3D 渲染
+ *
+ * @param page - Playwright Page 物件
+ * @throws 如果 3D 模式切換失敗
+ */
+export async function setup3DTrajectory(page: Page): Promise<void> {
+  // 先進入 2D 軌跡（確保數據載入）
+  await setup2DTrajectory(page);
+
+  // 切換到 3D 模式
+  await switchTo3DReliably(page);
+
+  // CI 環境額外等待（Cesium 初始化較慢）
+  if (IS_CI) {
+    await page.waitForTimeout(3000);
+  }
 }
 
 // 導出常量供測試使用
