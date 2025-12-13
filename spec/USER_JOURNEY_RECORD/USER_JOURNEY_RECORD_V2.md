@@ -1,9 +1,9 @@
 # 使用者歷程記錄 V2
 
-**版本**: 2.11
+**版本**: 2.12
 **建立日期**: 2025-12-02
 **更新日期**: 2025-12-13
-**更新內容**: 記錄點 #10 (雷達模式) 測試開發完成（簡化為 5 個測試）
+**更新內容**: 記錄點 #11 (錯誤監控) 測試開發完成（簡化為 1 個整合測試）
 
 ---
 
@@ -49,7 +49,7 @@
 | #09 | 勾選清單面板 | 輔助 | P2 | 5 | ✅ 完成 |
 | #10 | 雷達模式 | 特殊 | P2 | 5 | ✅ 完成 |
 | **品質監控** ||||||
-| #11 | 錯誤監控 | 監控 | P0 | 3 | 待開發 |
+| #11 | 錯誤監控 | 監控 | P0 | 1 | ✅ 完成 |
 
 ---
 
@@ -710,39 +710,60 @@ expect(report.passed).toBe(true);
 
 ---
 
-### 記錄點 #11: 錯誤監控
+### 記錄點 #11: 錯誤監控 ✅
 
 **執行方式**: 貫穿所有測試階段，持續監控
+
+#### 開發狀態
+
+| 項目 | 狀態 |
+|------|------|
+| 測試檔案 | `tests/e2e/tc-11-001-error-monitoring.spec.ts` |
+| Helper | `tests/helpers/error-monitor.ts` |
+| 測試數量 | 1 個整合測試（含 3 個驗證點，簡化自原 3 個獨立測試） |
+| 本地測試 | ✅ 1/1 passed (5.8s) |
+| CI 測試 | ⏳ 待驗證 |
+| 完成日期 | 2025-12-13 |
+
+#### 開發備註
+
+- **簡化設計**: 原規格 3 個獨立 P0 測試會重複執行完整流程 3 次，改為 1 個整合測試
+- **白名單管理**: 15 種已知可忽略錯誤（gpx2d, Cesium, favicon 等）
+- **統一監控**: ErrorMonitor 類整合 Console + Network + Page 三種監控
 
 #### 監控項目
 
 | 區域 | 監控內容 | 說明 |
 |------|---------|------|
-| Console | JavaScript 錯誤 | 嚴重錯誤會導致測試失敗 |
-| Network | 網路請求 | API 請求失敗監控 |
-| Page | 頁面崩潰 | 未預期的頁面錯誤 |
+| Console | JavaScript 錯誤 | 過濾白名單後的嚴重錯誤 |
+| Network | 網路請求 | API 請求 5xx 錯誤 |
+| Page | 頁面崩潰 | 未處理的頁面異常 |
 
-#### 測試檢查點
+#### 測試檢查點（整合版，1 個測試含 3 驗證點）
 
-| # | 檢查項目 | 優先級 | 驗證方式 |
-|---|---------|--------|---------|
-| 11.1 | Console 無嚴重錯誤 | P0 | 監控 console.error |
-| 11.2 | 網路請求成功 | P0 | API 請求無 5xx 錯誤 |
-| 11.3 | 頁面無崩潰 | P0 | 無未處理異常 |
+| # | 檢查項目 | 優先級 | 驗證方式 | 狀態 |
+|---|---------|--------|---------|------|
+| 11.1 | Console 無嚴重錯誤 | P0 | `report.consoleErrors` 為空 | ✅ |
+| 11.2 | 網路請求成功 | P0 | `report.networkErrors` 為空 | ✅ |
+| 11.3 | 頁面無崩潰 | P0 | `report.pageErrors` 為空 | ✅ |
 
 #### Helper 類別
 
-**檔案**: `tests/helpers/console-monitor.ts`
+**檔案**: `tests/helpers/error-monitor.ts`
 
 ```typescript
-import { ConsoleMonitor } from '../helpers/console-monitor';
+import { ErrorMonitor } from '../helpers/error-monitor';
 
 // 使用範例
-const monitor = new ConsoleMonitor(page);
-monitor.start();
-// ... 執行測試 ...
-const errors = monitor.getErrors();
-expect(errors.length).toBe(0);
+const monitor = new ErrorMonitor();
+monitor.setup(page);
+
+// ... 執行測試流程 ...
+
+const report = monitor.getReport();
+expect(report.consoleErrors).toEqual([]);
+expect(report.networkErrors).toEqual([]);
+expect(report.pageErrors).toEqual([]);
 ```
 
 ---
@@ -764,8 +785,8 @@ expect(errors.length).toBe(0);
 | #09 | 勾選清單 | 5 | 0 | 0 | 5 | ✅ 完成 |
 | #10 | 雷達模式 | 5 | 0 | 0 | 5 | ✅ 完成 |
 | **品質監控** |||||||
-| #11 | 錯誤監控 | 3 | 3 | 0 | 0 | 待開發 |
-| **總計** | | **68** | **32** | **26** | **10** | **10/11** |
+| #11 | 錯誤監控 | 1 | 1 | 0 | 0 | ✅ 完成 |
+| **總計** | | **66** | **30** | **26** | **10** | **11/11** |
 
 ---
 
@@ -802,3 +823,4 @@ expect(errors.length).toBe(0);
 - V2.9 (2025-12-12): 記錄點 #08 (鴿舍列表 Tab) 測試開發完成，5 個測試案例
 - V2.10 (2025-12-13): 記錄點 #09 (勾選清單面板) 測試開發完成，5 個測試案例
 - V2.11 (2025-12-13): 記錄點 #10 (雷達模式) 測試開發完成，簡化為 5 個測試案例（原 8 個）
+- V2.12 (2025-12-13): 記錄點 #11 (錯誤監控) 測試開發完成，簡化為 1 個整合測試（原 3 個）— **全部記錄點完成 (11/11)**
