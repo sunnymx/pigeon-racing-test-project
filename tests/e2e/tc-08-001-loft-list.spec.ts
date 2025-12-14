@@ -80,7 +80,7 @@ test.describe('TC-08-001: 鴿舍列表 Tab @P1', () => {
 
     // 額外驗證：至少有合理數量的鴿舍
     // 規格提到約 1800 個，但至少應該有 10 個以上
-    expect(optionsCount).toBeGreaterThan(10);
+    expect(optionsCount).toBeGreaterThanOrEqual(10);
   });
 
   // ==========================================================================

@@ -161,10 +161,10 @@ test.describe('TC-06-001: 軌跡詳情 - 數值範圍 @P1', () => {
     expect(summaryData.maxAltitude).toBeLessThanOrEqual(2000);
   });
 
-  test('6.12 距離範圍 10~500 km', async () => {
-    // 賽鴿合理比賽距離
-    expect(summaryData.actualDistance).toBeGreaterThanOrEqual(10);
-    expect(summaryData.actualDistance).toBeLessThanOrEqual(500);
+  test('6.12 距離範圍 5~800 km', async () => {
+    // 賽鴿合理比賽距離（短程賽可低於 10km，長程決賽可達 500+ km）
+    expect(summaryData.actualDistance).toBeGreaterThanOrEqual(5);
+    expect(summaryData.actualDistance).toBeLessThanOrEqual(800);
   });
 });
 
