@@ -80,9 +80,9 @@ Automated testing project for a pigeon racing GPS tracking system (https://hungd
 | 層級 | 位置 | 職責 |
 |------|------|------|
 | 總覽 | `CLAUDE.md` | 專案總覽、快速參考、索引導航 |
-| 架構 | `docs/architecture/` | 系統架構、模組設計、技術決策 |
+| 架構 | `archive/docs/architecture/` | 系統架構、模組設計、技術決策 |
 | 規格 | `spec/[功能名]/` | 功能規格、API 設計、資料結構 |
-| 指南 | `docs/guides/` | 開發指南、操作手冊、最佳實踐 |
+| 指南 | `archive/docs/guides/` | 開發指南、操作手冊、最佳實踐 |
 
 ### 關注點分離（代碼結構）
 
@@ -153,8 +153,8 @@ Automated testing project for a pigeon racing GPS tracking system (https://hungd
 - ✅ **3D Mode**: Check for Cesium controls (視角1/視角2 buttons)
 - ❌ **WRONG**: Do NOT use button text to detect current mode
 
-📖 **Deep dive**: [Mode Switching Guide](docs/guides/mode-switching.md)
-🏗️ **Architecture**: [Test Framework](docs/architecture/test-framework.md#2d3d-mode-architecture)
+📖 **Deep dive**: [Mode Switching Guide](archive/docs/guides/mode-switching.md)
+🏗️ **Architecture**: [Test Framework](archive/docs/architecture/test-framework.md#2d3d-mode-architecture)
 
 ### Known Issues Quick Reference
 
@@ -164,7 +164,7 @@ Automated testing project for a pigeon racing GPS tracking system (https://hungd
 4. **Data loading timing** → Wait 2-3 seconds after switches
 5. **page.goto networkidle timeout** → Use `domcontentloaded` + element wait instead
 
-📖 **Solutions**: [Troubleshooting Guide](docs/guides/troubleshooting.md)
+📖 **Solutions**: [Troubleshooting Guide](archive/docs/guides/troubleshooting.md)
 
 ### ⚠️ Selector Quick Reference (2025-11-26)
 
@@ -172,7 +172,7 @@ Automated testing project for a pigeon racing GPS tracking system (https://hungd
 - 軌跡標記點: `.amap-icon > img`
 - Canvas 圖層: `canvas.amap-layer`
 
-📖 **完整說明**: [Selectors Guide](docs/guides/selectors.md)
+📖 **完整說明**: [Selectors Guide](archive/docs/guides/selectors.md)
 
 ---
 
@@ -204,7 +204,7 @@ await page.locator('input[type="checkbox"]').first().click();
 await page.getByRole('button', { name: '查看軌跡' }).click();
 ```
 
-📖 **Complete workflow**: [Playwright MCP Guide](docs/guides/playwright-workflow.md)
+📖 **Complete workflow**: [Playwright MCP Guide](archive/docs/guides/playwright-workflow.md)
 
 ---
 
@@ -217,7 +217,7 @@ await page.getByRole('button', { name: '查看軌跡' }).click();
 | Helper 函數 | 7 模組 | `tests/helpers/` - 導航、模式切換、軌跡操作等 |
 | P0 測試案例 | 3 個 | `tests/e2e/` - TC-02-001, TC-03-001, TC-04-001 |
 
-📖 **完整說明**: [Helper Functions](docs/architecture/helper-functions.md)
+📖 **完整說明**: [Helper Functions](archive/docs/architecture/helper-functions.md)
 
 ---
 
@@ -226,46 +226,19 @@ await page.getByRole('button', { name: '查看軌跡' }).click();
 ### Quick Reference (You Are Here)
 **CLAUDE.md** - Critical warnings, quick commands, navigation index
 
-### Architecture & Design
-**[docs/architecture/test-framework.md](docs/architecture/test-framework.md)**
-- Test framework architecture design
-- Helper function module design
-- Test case priority system (P0/P1/P2)
-- Data validation framework
+### Active Resources
 
-**[docs/technical-architecture/](docs/technical-architecture/)**
-- [System Architecture](docs/technical-architecture/SYSTEM_ARCHITECTURE.md) - Frontend/backend architecture, map engines
-- [Dependency Graph](docs/technical-architecture/DEPENDENCY_GRAPH.md) - Technical dependencies, API call chains, wait strategies
+**[spec/USER_JOURNEY_RECORD/](spec/USER_JOURNEY_RECORD/)** - 測試規格
+- 11 個記錄點，對應 TC-01 ~ TC-11
 
-**[docs/data-model/](docs/data-model/)**
-- [Entity Relationship](docs/data-model/ENTITY_RELATIONSHIP.md) - Data model, entity relationships, validation rules
+### Archived Documentation
 
-**[docs/information-architecture/](docs/information-architecture/)**
-- [Site Map](docs/information-architecture/SITE_MAP.md) - Complete page structure
-- [Page Flows](docs/information-architecture/PAGE_FLOWS.md) - Navigation flows, decision points
+**[archive/](archive/)** - 封存文件 (2025-12-15)
+- `archive/tests/` - 舊版測試代碼
+- `archive/docs/` - 所有文檔 (guides, architecture, api-reference 等)
+- `archive/dev/` - 已完成的開發分支
 
-### Development Planning
-**[docs/development-plan/](docs/development-plan/)**
-- [Development Roadmap](docs/development-plan/ROADMAP.md) - Complete 3-phase development plan
-- [Documents Checklist](docs/development-plan/DOCUMENTS_CHECKLIST.md) - Track documentation progress
-- Quick start priority strategy: Architecture docs (2-3 days) → P0 tests implementation
-
-### Detailed Guides
-**[docs/guides/](docs/guides/)**
-- [Mode Switching Guide](docs/guides/mode-switching.md) - 2D/3D selection deep dive
-- [Troubleshooting Guide](docs/guides/troubleshooting.md) - 4 known issues + solutions
-- [Testing Strategies](docs/guides/testing-strategies.md) - Triple verification, wait patterns
-- [Playwright Workflow](docs/guides/playwright-workflow.md) - Interactive testing flow
-
-### Test Planning
-**[docs/test-plan/](docs/test-plan/)**
-- [Test Plan Overview](docs/test-plan/TEST_PLAN_OVERVIEW.md) - Master strategy
-- [Test Cases](docs/test-plan/TEST_CASES.md) - 35+ detailed test cases
-- [Known Issues Solutions](docs/test-plan/KNOWN_ISSUES_SOLUTIONS.md) - Original problem documentation
-
-### API Reference
-**[docs/api-reference/](docs/api-reference/)**
-- [API Endpoints](docs/api-reference/API_ENDPOINTS.md) - 6 core endpoints
+📖 詳見 [archive/README.md](archive/README.md)
 
 ---
 
@@ -284,7 +257,7 @@ git push minxin main
 git remote -v
 ```
 
-📖 **Complete setup**: [Git Setup Guide](docs/GIT_SETUP.md)
+📖 **Complete setup**: [Git Setup Guide](archive/docs/GIT_SETUP.md)
 
 ---
 
@@ -293,68 +266,53 @@ git remote -v
 ### Step-by-Step Approach
 
 1. **Read this file first** (you're here!)
-2. **Understand architecture** → [Test Framework](docs/architecture/test-framework.md)
-3. **Learn tools** → [Playwright MCP Workflow](docs/guides/playwright-workflow.md)
-4. **Study strategies** → [Testing Strategies](docs/guides/testing-strategies.md)
-5. **Review test cases** → [Test Cases](docs/test-plan/TEST_CASES.md)
-6. **Handle known issues** → [Troubleshooting](docs/guides/troubleshooting.md)
+2. **Review test code** → `tests/e2e/` + `tests/helpers/`
+3. **Review test specs** → [spec/USER_JOURNEY_RECORD/](spec/USER_JOURNEY_RECORD/)
+4. **Reference docs (if needed)** → [archive/docs/](archive/docs/)
 
-### Implementation Priorities
+### Test Cases Overview
 
-**Phase 1: P0 Tests** (Critical - must pass)
-- TC-02-001: 2D static trajectory
-- TC-03-001: Static/dynamic switching
-- TC-04-001: 2D dynamic mode + wind field
+| 優先級 | 測試案例 | 說明 |
+|--------|---------|------|
+| P0 | TC-01 ~ TC-06, TC-11 | 首頁、賽事、2D/3D 模式、軌跡詳情、錯誤監控 |
+| P1 | TC-07, TC-08 | 多選鴿子、鴿舍列表 |
+| P2 | TC-09, TC-10 | 選擇面板、雷達模式 |
 
-**Phase 2: P1 Tests** (Important)
-- Trajectory point interaction
-- Data validation
-- Mode switching edge cases
-
-**Phase 3: P2 Tests** (Nice-to-have)
-- Loft list operations
-- Error handling
-- Performance tests
-
-📖 **Complete catalog**: [Test Plan Overview](docs/test-plan/TEST_PLAN_OVERVIEW.md)
+📖 **測試規格**: [spec/USER_JOURNEY_RECORD/](spec/USER_JOURNEY_RECORD/)
 
 ---
 
 ## 📊 Project Status
 
-**Last Updated**: 2025-12-13
+**Last Updated**: 2025-12-15
 
-**Current State**:
-- ✅ MVP testing completed
-- ✅ Test plan documentation complete (66 test cases)
-- ✅ Documentation consistency verified (9.75/10 score)
-- ✅ P0 測試案例實作完成 (7/7: #01~#06, #11)
-- ✅ P1 測試案例實作完成 (2/2: #07, #08)
-- ✅ P2 測試案例實作完成 (2/2: #09, #10)
-- ✅ Helper 函數模組完整 (11/11)
-- ✅ **全部記錄點完成 (11/11)**
+**Current State**: ✅ 開發完成，進入維護階段
 
-**Project Statistics**:
-- 📋 Test cases: 66 (11/11 記錄點全部完成)
-- 🔧 Helper functions: 11 modules
-- 🔌 API endpoints: 6
-- ⚠️ Known issues: 4 (all solved)
-- 📖 Guides: 5
-- 🏗️ Architecture docs: 10
+| 項目 | 狀態 | 數量 |
+|------|------|------|
+| E2E 測試案例 | ✅ 完成 | 11 個 spec 檔 |
+| Helper 模組 | ✅ 完成 | 9 個模組 |
+| 測試規格 | ✅ 完成 | 11 個記錄點 |
+| 開發指南 | ✅ 完成 | 7 個指南 |
+| 架構文檔 | ✅ 完成 | 2 個文檔 |
+
+**專案結構** (2025-12-15 整理):
+- 核心代碼: `tests/e2e/` + `tests/helpers/`
+- 測試規格: `spec/USER_JOURNEY_RECORD/`
+- 封存區: `archive/` (舊代碼、所有文檔、開發分支)
 
 ---
 
 ## 🔍 Quick Reference Links
 
-- **Development Plan**: [Roadmap](docs/development-plan/ROADMAP.md) | [Documents Checklist](docs/development-plan/DOCUMENTS_CHECKLIST.md)
-- **Architecture**: [Test Framework](docs/architecture/test-framework.md) | [System Architecture](docs/technical-architecture/SYSTEM_ARCHITECTURE.md) | [Dependency Graph](docs/technical-architecture/DEPENDENCY_GRAPH.md)
-- **Data Model**: [Entity Relationship](docs/data-model/ENTITY_RELATIONSHIP.md)
-- **Information Architecture**: [Site Map](docs/information-architecture/SITE_MAP.md) | [Page Flows](docs/information-architecture/PAGE_FLOWS.md)
-- **Guides Index**: [docs/guides/](docs/guides/README.md)
-- **Test Plan**: [Test Plan Overview](docs/test-plan/TEST_PLAN_OVERVIEW.md)
-- **Test Cases**: [Detailed Test Cases](docs/test-plan/TEST_CASES.md)
-- **API Docs**: [API Endpoints](docs/api-reference/API_ENDPOINTS.md)
-- **Git Setup**: [Git Configuration](docs/GIT_SETUP.md)
+**核心代碼**:
+- `tests/e2e/` - 11 個測試案例
+- `tests/helpers/` - 9 個 Helper 模組
+
+**測試規格**:
+- [spec/USER_JOURNEY_RECORD/](spec/USER_JOURNEY_RECORD/) - 11 個記錄點
+
+**封存資料**: [archive/](archive/) - 舊代碼與所有文檔
 
 ---
 
@@ -368,4 +326,4 @@ git remote -v
 
 ---
 
-**Documentation last updated**: 2025-11-26 - Separation of Concerns refactoring completed.
+**Documentation last updated**: 2025-12-15 - Project structure reorganization completed.
